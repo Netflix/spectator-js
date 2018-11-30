@@ -1,0 +1,26 @@
+{
+  "name": "nflx-spectator",
+  "version": "0.0.1",
+  "main": "src/index.js",
+  "homepage": "https://github.org/Netflix/spectator-js",
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@github.com:Netflix/spectator-js.git"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "coveralls": "^3.0.2",
+    "eslint": "^2.13.1",
+    "istanbul": "^0.4.5",
+    "jscs": "^3.0.7",
+    "express": "^4.16.4",
+    "mocha": "^3.5.0",
+    "body-parser": "latest"
+  },
+  "scripts": {
+    "test": "mocha --reporter spec",
+    "cover": "node_modules/istanbul/lib/cli.js cover node_modules/mocha/bin/_mocha -- -R spec test/*",
+    "lint": "eslint src/*.js test/*.js"
+  }
+}
