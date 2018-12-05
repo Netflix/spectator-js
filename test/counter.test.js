@@ -2,7 +2,7 @@
 
 const chai = require('chai');
 const assert = chai.assert;
-const Counter = require('../src/Counter');
+const Counter = require('../src/counter');
 const MeterId = require('../src/meter_id');
 
 describe('Counters', () => {
