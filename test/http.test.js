@@ -17,6 +17,14 @@ describe('http client', () => {
       type: 'application/json',
       limit: '8mb'
     }));
+
+    const listener = server.listen(() => {
+      const port = listener.address().port;
+      console.log('Listening on ' + port);
+      h.postJson('http://localhost:' + port + '/json',
+        {foo: 'bar'});
+    });
+
     server.post('/json', (req, res) => {
       const payload = req.body;
       res.send(JSON.stringify({
@@ -39,15 +47,9 @@ describe('http client', () => {
           }
         }
         assert.equal(timerCount, 4);
+        listener.close();
         done();
       }, 10);
-    });
-
-    const listener = server.listen(() => {
-      const port = listener.address().port;
-      console.log('Listening on ' + port);
-      h.postJson('http://localhost:' + port + '/json',
-        {foo: 'bar'});
     });
   });
 
@@ -59,6 +61,14 @@ describe('http client', () => {
       type: 'application/json',
       limit: '8mb'
     }));
+
+    const listener = server.listen(() => {
+      const port = listener.address().port;
+      console.log('Listening on ' + port);
+      h.postJson('http://localhost:' + port + '/json',
+        {foo: 'bar'});
+    });
+
     server.post('/json', (req, res) => {
       const payload = req.body;
       res.status(503);
@@ -82,15 +92,9 @@ describe('http client', () => {
           }
         }
         assert.equal(timerCount, 4);
+        listener.close();
         done();
       }, 10);
-    });
-
-    const listener = server.listen(() => {
-      const port = listener.address().port;
-      console.log('Listening on ' + port);
-      h.postJson('http://localhost:' + port + '/json',
-        {foo: 'bar'});
     });
   });
 
@@ -102,6 +106,13 @@ describe('http client', () => {
       type: 'application/json',
       limit: '8mb'
     }));
+
+    const listener = server.listen(() => {
+      const port = listener.address().port;
+      console.log('Listening on ' + port);
+      h.postJson('http://localhost:' + port + '/json',
+        {foo: 'bar'});
+    });
 
     function handleRequestLater(req, res) {
       res.status(503);
@@ -123,6 +134,7 @@ describe('http client', () => {
           }
         }
         assert.equal(timerCount, 4);
+        listener.close();
         done();
       }, 10);
     }
@@ -131,12 +143,7 @@ describe('http client', () => {
       setTimeout(handleRequestLater, 100, req, res);
     });
 
-    const listener = server.listen(() => {
-      const port = listener.address().port;
-      console.log('Listening on ' + port);
-      h.postJson('http://localhost:' + port + '/json',
-        {foo: 'bar'});
-    });
+
   });
 
   it('handle hostname errors', (done) => {
