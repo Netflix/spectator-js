@@ -64,6 +64,13 @@ class MeterId {
   withStat(stat) {
     return this.withTag('statistic', stat);
   }
+
+  withDefaultStat(stat) {
+    if (this.tags.has('statistic')) {
+      return this;
+    }
+    return this.withTag('statistic', stat);
+  }
 }
 
 module.exports = MeterId;

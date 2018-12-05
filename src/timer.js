@@ -18,7 +18,7 @@ class Timer {
     const ns = nanos || 0;
 
     if (seconds instanceof Array) {
-      totalNanos = seconds[0] * 1e9 + seconds[1];
+      totalNanos = seconds[0] * 1e9 + (seconds[1] || 0);
     } else {
       totalNanos = seconds * 1e9 + ns;
     }

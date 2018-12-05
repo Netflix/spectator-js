@@ -14,7 +14,7 @@
 
     // alignment rules
     "maximumLineLength": {
-        "value": 80,
+        "value": 100,
         "allowComments": true,
         "allowUrlComments": true,
         "allowRegex": true
@@ -60,14 +60,6 @@
     "requireLineBreakAfterVariableAssignment": true,
     "requirePaddingNewLinesAfterUseStrict": true,
     "requirePaddingNewLinesBeforeExport": true,
-    "requirePaddingNewlinesBeforeKeywords": [
-        "do",
-        "for",
-        "if",
-        "switch",
-        "try",
-        "while"
-    ],
     "requireSemicolons": true,
     "requireSpaceAfterBinaryOperators": true,
     "requireSpaceAfterKeywords": [

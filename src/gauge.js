@@ -21,7 +21,7 @@ class Gauge {
     if (isNaN(v)) {
       return [];
     }
-    return [{id: this.id.withStat('gauge'), v: v}];
+    return [{id: this.id.withDefaultStat('gauge'), v: v}];
   }
 }
 

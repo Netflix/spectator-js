@@ -28,7 +28,7 @@ class Counter {
     }
 
     this.count = 0;
-    return [{id: this.id.withStat('count'), v: c}];
+    return [{id: this.id.withDefaultStat('count'), v: c}];
   }
 }
 
