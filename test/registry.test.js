@@ -149,8 +149,7 @@ describe('AtlasRegistry', () => {
 
   function payloadToEntries(payload) {
     const numStrings = payload[0];
-    const strings = [];
-    strings.length = numStrings;
+    const strings = new Array(numStrings);
 
     for (let i = 1; i <= numStrings; ++i) {
       strings[i - 1] = payload[i];

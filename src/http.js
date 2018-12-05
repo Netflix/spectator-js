@@ -38,7 +38,8 @@ class HttpClient {
       });
       res.on('end', () => {
         const statusFamily = `${Math.floor(res.statusCode / 100)}xx`;
-        self.registry.timer(baseId, {statusCode: res.statusCode, status: statusFamily}).record(process.hrtime(start));
+        const timerId = baseId.withTags({statusCode: res.statusCode, status: statusFamily});
+        self.registry.timer(timerId).record(process.hrtime(start));
 
         if (statusFamily !== '2xx') {
           log.error(`POST to ${endpoint}: ${res.statusCode} - ${data}`);
@@ -56,7 +57,8 @@ class HttpClient {
         // the error message
         log.error(`problem with request: ${e.message}`);
       }
-      self.registry.timer(baseId, {statusCode: error, status: error}).record(process.hrtime(start));
+      self.registry.timer(baseId, {statusCode: error, status: error})
+        .record(process.hrtime(start));
     });
 
     const timeout = this.registry.config.timeout || 1000;

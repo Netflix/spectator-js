@@ -49,4 +49,9 @@ describe('MeterIds', () => {
     assert.equal(id.key, 'name|k=v');
   });
 
+  it('should preserve statistic if present', () => {
+    const id = new MeterId('name', {statistic: 'percentile'});
+    assert.equal(id.withDefaultStat('counter').tags.get('statistic'), 'percentile');
+  });
+
 });
