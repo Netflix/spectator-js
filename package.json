@@ -9,14 +9,15 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
+    "body-parser": "^1.18.3",
     "chai": "^3.5.0",
     "coveralls": "^3.0.2",
     "eslint": "^2.13.1",
+    "express": "^4.16.4",
     "istanbul": "^0.4.5",
     "jscs": "^3.0.7",
-    "express": "^4.16.4",
     "mocha": "^5.2.0",
-    "body-parser": "latest"
+    "travis-deploy-once": "^4.4.1"
   },
   "scripts": {
     "test": "mocha --reporter spec",
