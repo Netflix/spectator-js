@@ -119,7 +119,7 @@ class Publisher {
 class AtlasRegistry {
   constructor(config) {
     this.config = config || {};
-    this.meters = new Map();
+    this.metersMap = new Map();
     this.started = false;
     this.publisher = new Publisher(this);
     this.logger = this.config.logger || new SimpleLogger();
@@ -173,12 +173,12 @@ class AtlasRegistry {
   newMeter(id, factoryFun) {
     const key = id.key;
 
-    if (this.meters.has(key)) {
-      return this.meters.get(key);
+    if (this.metersMap.has(key)) {
+      return this.metersMap.get(key);
     }
 
     const meter = factoryFun(id);
-    this.meters.set(key, meter);
+    this.metersMap.set(key, meter);
     return meter;
   }
 
@@ -226,10 +226,14 @@ class AtlasRegistry {
   measurements() {
     let a = [];
 
-    for (let meter of this.meters.values()) {
+    for (let meter of this.metersMap.values()) {
       a = a.concat(meter.measure());
     }
     return a;
+  }
+
+  meters() {
+    return Array.from(this.metersMap.values());
   }
 
   newId(name, tags) {

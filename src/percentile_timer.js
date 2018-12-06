@@ -23,10 +23,9 @@ for (let i = 0; i < percentiles.length; ++i) {
  * particular they have a higher storage cost, worst case ~300x, to maintain the data
  * distribution. Be diligent about any additional dimensions added to percentile timers and
  * ensure they have a small bounded cardinality. In addition it is highly recommended to
- * set a range (see {@link Builder#withRange(long, long, TimeUnit)}) whenever possible to
- * greatly restrict the worst case overhead.</p>
+ * set a range whenever possible to greatly restrict the worst case overhead.</p>
  *
- * <p>When using the builder ({@link #builder(Registry)}), the range will default from 10 ms
+ * <p>When using the builder, the range will default from 10 ms
  * to 1 minute. Based on data at Netflix this is the most common range for request latencies
  * and restricting to this window reduces the worst case multiple from 276 to 58</p>
  */
@@ -55,6 +54,8 @@ class PercentileTimer {
     class Builder {
       constructor(registry) {
         this.registry = registry;
+        this.min = 10 * 1e6; // 10 ms
+        this.max = 60 * 1e9; // 1 min
       }
       withId(id) {
         this.id = id;
@@ -113,9 +114,9 @@ class PercentileTimer {
   }
 
   record(seconds, nanos) {
+
     let actualNanos;
     let actualSeconds;
-
     // handle record(0, 100) and record([0, 100])
     if (seconds instanceof Array) {
       actualSeconds = seconds[0] || 0;
@@ -126,9 +127,11 @@ class PercentileTimer {
     }
 
     const totalNanos = actualSeconds * 1e9 + actualNanos;
-    const restrictedNanos = this._restrict(totalNanos);
-    this.timer.record(0, restrictedNanos);
-    this._counterFor(PercentileBuckets.indexOf(restrictedNanos)).increment();
+    if (totalNanos >= 0) {
+      this.timer.record(seconds, nanos);
+      const restrictedNanos = this._restrict(totalNanos);
+      this._counterFor(PercentileBuckets.indexOf(restrictedNanos)).increment();
+    }
   }
 
   /**

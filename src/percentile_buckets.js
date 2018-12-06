@@ -85,11 +85,7 @@ function bucket(v) {
 }
 
 function percentiles(counts, pcts) {
-  let total = 0;
-  for (let c of counts) {
-    total += c;
-  }
-
+  let total = counts.reduce((sum, x) => sum + x);
   let pctIdx = 0;
   let prev = 0;
   let prevP = 0.0;

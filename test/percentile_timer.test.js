@@ -74,7 +74,7 @@ describe('Percentile Timers', () => {
     const expectedSum = N * (N - 1) / 2;
 
     const r = new Registry();
-    const timer = new PercentileTimer.Builder(r).withName('name').build();
+    const timer = new PercentileTimer(r, r.newId('name'));
     for (let i = 0; i < N; ++i) {
       timer.record([0, millisToNanos(i)]);
     }
@@ -82,5 +82,19 @@ describe('Percentile Timers', () => {
     // totalTime returns nanos
     assert.equal(timer.totalTime, expectedSum * 1e6);
     assert.equal(timer.count, N);
+
+    // get the total count for the percentiles
+    function totalCount() {
+      return r.meters().filter(m => m.id.tags.has('percentile')).reduce((sum, m) => sum + m.count, 0);
+    }
+    assert.equal(totalCount(), N);
+
+    // ignores negative updates
+    timer.record([-1, 0]);
+    assert.equal(timer.count, N);
+    assert.equal(totalCount(), N);
+    timer.record(0, -1);
+    assert.equal(timer.count, N);
+    assert.equal(totalCount(), N);
   });
 });
