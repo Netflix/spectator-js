@@ -38,12 +38,17 @@ testOrCoverage: $(ALL_FILES)
 ifeq ($(NODE_VERSION),v10)
 	@echo Doing code coverage
 	@npm run cover
-	@echo Uploading the report to codecov
-  curl -s https://codecov.io/bash 
-	@echo Done uploading the report to codecov
 else
 	@echo Running under $(NODE_VERSION) - Just running tests
 	@npm test
+endif
+
+.PHONY: report-coverage
+report-coverage:
+ifeq ($(NODE_VERSION),v10)
+	curl -s https://codecov.io/bash  | bash
+else
+	@echo Not uploading code-coverage since running under $(NODE_VERSION)
 endif
 
 .PHONY: clean
