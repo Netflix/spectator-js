@@ -2,6 +2,10 @@
 
 /** Counters that get incremented based on the bucket for recorded values. */
 class BucketCounter {
+  static get(registry, id, bucketFunction) {
+    return new BucketCounter(registry, id, bucketFunction);
+  }
+
   /**
    * Creates a distribution summary object that manages a set of counters based on the bucket
    * function supplied. Calling record will increment the appropriate counter.

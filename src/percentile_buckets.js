@@ -109,14 +109,6 @@ function percentiles(counts, pcts) {
     prevP = nextP;
     prevB = nextB;
   }
-
-  const nextP = 100.0;
-  while (pctIdx < pcts.length) {
-    const f = (pcts[pctIdx] - prevP) / (nextP - prevP);
-    results[pctIdx] = f * (LONG_MAX_VALUE - prevB) + prevB;
-    ++pctIdx;
-  }
-
   return results;
 }
 

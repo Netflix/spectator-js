@@ -54,4 +54,16 @@ describe('MeterIds', () => {
     assert.equal(id.withDefaultStat('counter').tags.get('statistic'), 'percentile');
   });
 
+  it('should validate metrics', () => {
+    assert.throws(() => MeterId.validate(undefined, {fo: 'v'}),
+      /name must be present/);
+    assert.throws(() => MeterId.validate('', {fo: 'v'}),
+      /name must be present/);
+    assert.throws(() => MeterId.validate('name', new Map([['', 'value']])),
+      /keys are missing/);
+    assert.throws(() => MeterId.validate('name', {'': 'value'}),
+      /keys are missing/);
+    assert.throws(() => MeterId.validate('name', {'nf.missing': ''}),
+      /Value missing for key=nf.missing/);
+  });
 });
