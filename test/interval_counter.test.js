@@ -2,38 +2,40 @@
 
 const chai = require('chai');
 const assert = chai.assert;
-const LongTaskTimer = require('../src/long_task_timer');
+const IntervalCounter = require('../src/interval_counter');
 const Registry = require('../src/registry');
 
-describe('LongTaskTimer', () => {
+describe('IntervalCounter', () => {
   it('measurements', (done) => {
     const r = new Registry({gaugePollingFrequency: 1, strictMode: true});
     r.hrtime = (time) => {
       if (time) {
-        return [10, 0]; // return duration = 10s
+        return [0, 10e6]; // return duration = 10ms
       }
       return [0, 123];
     };
-    const timer = LongTaskTimer.get(r, r.newId('ltt'));
-    const task = timer.start();
+
+    const counter = IntervalCounter.get(r, r.newId('ic'));
+    counter.add(5);
+    assert.equal(counter.count, 5);
 
     setTimeout(() => {
       const ms = r.measurements();
       assert.lengthOf(ms, 2);
       for (let m of ms) {
-        assert.equal(m.id.name, 'ltt');
+        assert.equal(m.id.name, 'ic');
         const stat = m.id.tags.get('statistic');
-        if (stat === 'activeTasks') {
-          assert.equal(m.v, 1);
+        if (stat === 'count') {
+          assert.equal(m.v, 5);
         } else if (stat === 'duration') {
-          assert.equal(m.v, 10);
+          assert.equal(m.v, 0.01);
         } else {
-          assert.fail('Unexpected meter. Only statistic=activeTasks and duration were ' +
+          assert.fail('Unexpected meter. Only statistic=duration and count were ' +
             `expected but got '${stat}' instead`);
         }
       }
       r.stop();
-      assert.equal(timer.stop(task), 10);
+      assert.equal(counter.secondsSinceLastUpdate, 0.01);
       done();
     }, 3);
   });
@@ -42,62 +44,62 @@ describe('LongTaskTimer', () => {
     const r = new Registry({gaugePollingFrequency: 1, strictMode: true});
     r.hrtime = (time) => {
       if (time) {
-        return [10, 0]; // return duration = 10s
+        return [0, 20e6]; // return duration = 20ms
       }
       return [0, 123];
     };
-    const timer = LongTaskTimer.get(r, r.newId('ltt'));
-    const timer2 = LongTaskTimer.get(r, r.newId('ltt'));
-    // both should refer to the same timer
-    const task = timer.start();
+    const counter = IntervalCounter.get(r, r.newId('ic'));
+    const counter2 = IntervalCounter.get(r, r.newId('ic'));
+    // both should refer to the same counter
+    counter.add(1);
 
     setTimeout(() => {
       const ms = r.measurements();
       assert.lengthOf(ms, 2);
       for (let m of ms) {
-        assert.equal(m.id.name, 'ltt');
+        assert.equal(m.id.name, 'ic');
         const stat = m.id.tags.get('statistic');
-        if (stat === 'activeTasks') {
+        if (stat === 'count') {
           assert.equal(m.v, 1);
         } else if (stat === 'duration') {
-          assert.equal(m.v, 10);
+          assert.equal(m.v, 0.02);
         } else {
-          assert.fail('Unexpected meter. Only statistic=activeTasks and duration were ' +
+          assert.fail('Unexpected meter. Only statistic=duration and count were ' +
             `expected but got '${stat}' instead`);
         }
       }
       r.stop();
-      assert.equal(timer2.stop(task), 10);
+      assert.equal(counter2.secondsSinceLastUpdate, 0.02);
       done();
     }, 3);
   });
 
   it('throws when reusing an id previously registered as a different type', () => {
     const r = new Registry({gaugePollingFrequency: 1, strictMode: true});
-    const basicTimer = r.timer('ltt');
+    const basicCounter = r.counter('ic');
 
-    assert.throws(() => LongTaskTimer.get(r, r.newId('ltt')),
-      /found a Timer but was expecting a LongTaskTimer/);
-    basicTimer.record(2, 0);
+    assert.throws(() => IntervalCounter.get(r, r.newId('ic')),
+      /found a Counter but was expecting an IntervalCounter/);
+    basicCounter.add(2);
 
     // didn't affect the registry
-    assert.equal(r.timer('ltt').count, 1);
+    assert.equal(r.counter('ic').count, 2);
     r.stop();
   });
 
   it('protects against the key used in the state map being used for other purposes', () => {
     const r = new Registry({gaugePollingFrequency: 1, strictMode: true});
-    const id = r.newId('ltt');
+    const id = r.newId('ic');
     r.state.set(id.key, 'Foo');
-    assert.throws(() => LongTaskTimer.get(r, id),
-      /found a String but was expecting a LongTaskTimer/);
+    assert.throws(() => IntervalCounter.get(r, id),
+      /found a String but was expecting an IntervalCounter/);
     r.stop();
   });
 
   it('logs an error when not running under strictMode', () => {
     const r = new Registry({gaugePollingFrequency: 1, strictMode: false});
-    r.timer('ltt');
-    r.state.set('ltt2', 'foo');
+    r.timer('ic');
+    r.state.set('ic2', 'foo');
 
     let errorCount = 0;
     r.logger.error = (msg) => {
@@ -105,26 +107,13 @@ describe('LongTaskTimer', () => {
       console.log(`ERROR: ${msg}`);
     };
 
-    const id = r.newId('ltt');
-    const t = LongTaskTimer.get(r, id);
-    t.start();
-    t.start();
-    assert.equal(t.activeTasks, 2);
-    assert.equal(errorCount, 1);
+    const id = r.newId('ic');
+    IntervalCounter.get(r, id);
 
-
-    const id2 = r.newId('ltt2');
-    LongTaskTimer.get(r, id2);
+    const id2 = r.newId('ic2');
+    IntervalCounter.get(r, id2);
     assert.equal(errorCount, 2);
 
-    r.stop();
-  });
-
-  it('negative duration when stopping a non-existent task', () => {
-    const r = new Registry({gaugePollingFrequency: 1, strictMode: false});
-    const t = LongTaskTimer.get(r, r.newId('ltt'));
-    const taskId = t.start();
-    assert.isBelow(t.stop(taskId + 1), 0);
     r.stop();
   });
 });

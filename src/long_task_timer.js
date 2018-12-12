@@ -1,6 +1,7 @@
 'use strict';
 
 const PolledMeter = require('./polled_meter');
+const NopRegistry = require('./nop_registry');
 
 /**
  * Timer intended to track a small number of long running tasks. Example would be something like
@@ -9,7 +10,8 @@ const PolledMeter = require('./polled_meter');
  */
 class LongTaskTimer {
   // Use LongTaskTimer.get() - do not use this constructor directly
-  constructor() {
+  constructor(registry) {
+    this.registry = registry;
     this.tasks = new Map();
     this.nextTask = 0;
   }
@@ -21,7 +23,7 @@ class LongTaskTimer {
    */
   start() {
     const taskId = this.nextTask++;
-    this.tasks.set(taskId, process.hrtime());
+    this.tasks.set(taskId, this.registry.hrtime());
     return taskId;
   }
 
@@ -35,7 +37,7 @@ class LongTaskTimer {
     const startTime = this.tasks.get(task);
     if (startTime) {
       this.tasks.delete(task);
-      const elapsed = process.hrtime(startTime);
+      const elapsed = this.registry.hrtime(startTime);
       return elapsed[0] + elapsed[1] / 1e9;
     }
     return -1;
@@ -59,7 +61,7 @@ class LongTaskTimer {
   get duration() {
     let elapsedSeconds = 0;
     for (let start of this.tasks.values()) {
-      const elapsed = process.hrtime(start);
+      const elapsed = this.registry.hrtime(start);
       elapsedSeconds += elapsed[0] + elapsed[1] / 1e9;
     }
     return elapsedSeconds;
@@ -84,7 +86,7 @@ class LongTaskTimer {
       }
       // throws if strictMode
       registry.throwTypeError(id, timer.constructor.name, 'LongTaskTimer', 'LongTaskTimer');
-      return new LongTaskTimer(); // dummy, not registered
+      return new LongTaskTimer(new NopRegistry); // dummy, not registered
     }
 
     // make sure we don't attempt to register an id which is used for something else
@@ -92,9 +94,9 @@ class LongTaskTimer {
     if (prevMeter) {
       // throws if strictMode
       registry.throwTypeError(id, prevMeter.constructor.name, 'LongTaskTimer', 'LongTaskTimer');
-      return new LongTaskTimer();
+      return new LongTaskTimer(new NopRegistry);
     }
-    timer = new LongTaskTimer();
+    timer = new LongTaskTimer(registry);
     state.set(id.key, timer);
 
     PolledMeter.using(registry).withId(id.withStat('activeTasks'))

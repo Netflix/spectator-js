@@ -13,9 +13,10 @@ class CounterState {
     this.prevNumbers.push(f());
   }
 
-  schedule(delay) {
+  schedule(registry) {
     if (!this.interval) {
-      this.interval = setInterval(CounterState.update, delay, this);
+      const delay = registry.config.gaugePollingFrequency;
+      this.interval = registry.schedulePeriodically(CounterState.update, delay, this);
     }
   }
 
@@ -45,9 +46,10 @@ class ValueState {
     this.functions.push(f);
   }
 
-  schedule(delay) {
+  schedule(registry) {
     if (!this.interval) {
-      this.interval = setInterval(ValueState.update, delay, this);
+      const delay = registry.config.gaugePollingFrequency;
+      this.interval = registry.schedulePeriodically(ValueState.update, delay, this);
     }
   }
 
@@ -105,7 +107,7 @@ class PolledMeter {
         }
         if (c.constructor.name === 'ValueState') {
           c.add(fun);
-          c.schedule(r.config.gaugePollingFrequency);
+          c.schedule(r);
         }
       }
 
@@ -130,7 +132,7 @@ class PolledMeter {
         }
         if (c.constructor.name === 'CounterState') {
           c.add(fun);
-          c.schedule(r.config.gaugePollingFrequency);
+          c.schedule(r);
         }
       }
     }
