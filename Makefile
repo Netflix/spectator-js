@@ -1,17 +1,16 @@
 ROOT           := $(shell pwd)
 NODE_MODULES   := $(ROOT)/node_modules
 NODE_BIN       := $(NODE_MODULES)/.bin
+NODE_VERSION   := $(shell node --version | sed 's/\..*//')
 	
 ALL_FILES := src/*.js
 ESLINT := $(NODE_BIN)/eslint
 JSCS := $(NODE_BIN)/jscs
 MOCHA       := $(NODE_BIN)/mocha
 _MOCHA      := $(NODE_BIN)/_mocha
-ISTANBUL    := $(NODE_BIN)/istanbul
-COVERALLS   := $(NODE_BIN)/coveralls
 
 .PHONY: all
-all: clean lint codestyle test
+all: clean lint codestyle testOrCoverage
 
 .PHONY: lint
 lint:
@@ -31,14 +30,26 @@ test:
 
 .PHONY: coverage
 coverage: node_modules $(ALL_FILES)
-	@$(ISTANBUL) cover $(_MOCHA) --report json-summary --report html -- -R spec
-	@$(COVERAGE_BADGE)
+	@npm run cover
 
+# Run a coverage report if running under node 10, otherwise just run our tests
+.PHONY: testOrCoverage
+testOrCoverage: $(ALL_FILES)
+ifeq ($(NODE_VERSION),v10)
+	@echo Doing code coverage
+	@npm run cover
+else
+	@echo Running under $(NODE_VERSION) - Just running tests
+	@npm test
+endif
 
 .PHONY: report-coverage
-report-coverage: coverage
-	@cat $(LCOV) | $(COVERALLS)
-
+report-coverage:
+ifeq ($(NODE_VERSION),v10)
+	curl -s https://codecov.io/bash  | bash
+else
+	@echo Not uploading code-coverage since running under $(NODE_VERSION)
+endif
 
 .PHONY: clean
 clean:
