@@ -170,8 +170,16 @@ class AtlasRegistry {
   }
 
   throwTypeError(id, registeredType, newType, requestedMeter) {
+    let article;
+    const firstLetter = newType.substr(0, 1).toLowerCase();
+    if (['a', 'e', 'i', 'o', 'u'].indexOf(firstLetter) >= 0) {
+      article = 'an';
+    } else {
+      article = 'a';
+    }
+
     const msg = `When creating an instance of ${requestedMeter} with id=${id.key}, ` +
-      `found a ${registeredType} but was expecting a ${newType}`;
+      `found a ${registeredType} but was expecting ${article} ${newType}`;
     if (this.config.strictMode) {
       throw new Error(msg);
     } else {
@@ -299,6 +307,26 @@ class AtlasRegistry {
       MeterId.validate(name, tags);
     }
     return new MeterId(name, tags);
+  }
+
+  /**
+   * Schedule a task periodically.  See setInterval()
+   *
+   * @param {*} args - Arguments delegated to setInterval
+   * @returns {number}
+   */
+  schedulePeriodically(args) {
+    return setInterval.apply(this, arguments);
+  }
+
+  /**
+   * High resolution timer.
+   *
+   * @param {number[]} [time] - The result of a previous call to registry.hrtime()
+   * @return {number[]} - [seconds, nanoseconds]
+   */
+  hrtime(time) {
+    return process.hrtime(time);
   }
 }
 

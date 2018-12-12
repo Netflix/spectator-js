@@ -44,7 +44,7 @@ class Server {
   }
   
   handle(request) {
-    const start = process.hrtime();
+    const start = this.registry.hrtime();
     
     // do some work based on request and obtain a response
     const res = new Response(200, 64);
@@ -57,7 +57,7 @@ class Server {
     const counterId = this.requestCountId.withTags({country: request.country, 
         status: res.status});
     this.registry.counter(counterId).increment();
-    this.requestLatency.record(process.hrtime(start));
+    this.requestLatency.record(this.registry.hrtime(start));
     this.responseSize.record(res.size);
     return res;
   }

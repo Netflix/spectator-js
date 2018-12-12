@@ -28,8 +28,8 @@ class HttpClient {
       protocol: url.protocol
     };
 
-    const start = process.hrtime();
-    const self = this;
+    const registry = this.registry;
+    const start = registry.hrtime();
     const request = http.request(options, (res) => {
       let data = '';
       res.setEncoding('utf8');
@@ -39,7 +39,7 @@ class HttpClient {
       res.on('end', () => {
         const statusFamily = `${Math.floor(res.statusCode / 100)}xx`;
         const timerId = baseId.withTags({statusCode: res.statusCode, status: statusFamily});
-        self.registry.timer(timerId).record(process.hrtime(start));
+        registry.timer(timerId).record(registry.hrtime(start));
 
         if (statusFamily !== '2xx') {
           log.error(`POST to ${endpoint}: ${res.statusCode} - ${data}`);
@@ -57,14 +57,14 @@ class HttpClient {
         // the error message
         log.error(`problem with request: ${e.message}`);
       }
-      self.registry.timer(baseId, {statusCode: error, status: error})
-        .record(process.hrtime(start));
+      registry.timer(baseId, {statusCode: error, status: error})
+        .record(registry.hrtime(start));
     });
 
     const timeout = this.registry.config.timeout || 1000;
     request.setTimeout(timeout, () => {
       request.abort();
-      const elapsed = process.hrtime(start);
+      const elapsed = registry.hrtime(start);
       const seconds = elapsed[0] + elapsed[1] / 1e9;
       log.error(`Timeout POSTing to ${endpoint} after ${seconds.toFixed(2)}s`);
     });
