@@ -38,6 +38,7 @@ testOrCoverage: $(ALL_FILES)
 ifeq ($(NODE_VERSION),v10)
 	@echo Doing code coverage
 	@npm run cover
+  curl -s https://codecov.io/bash || echo 'Codecov did not collect coverage reports'
 else
 	@echo Running under $(NODE_VERSION) - Just running tests
 	@npm test
