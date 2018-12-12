@@ -156,11 +156,12 @@ class AtlasRegistry {
     let msg;
     if (actualClass !== expectedClass) {
       msg = `Expecting a different type when creating a ${expectedClass} for id=${id.key}. ` +
-        `Found ${actualClass} already registered with the same id when ${expectedClass} was expected`;
+        `Found ${actualClass} already registered with the same id when ` +
+        `${expectedClass} was expected`;
       if (this.config.strictMode) {
         throw new Error(msg);
       } else {
-        this.logger.error(msg)
+        this.logger.error(msg);
       }
       return false;
     }
@@ -169,8 +170,8 @@ class AtlasRegistry {
   }
 
   throwTypeError(id, registeredType, newType, requestedMeter) {
-    const msg = `When creating an instance of ${requestedMeter} with id=${id.key}, found ${registeredType} ` +
-      `but was expecting a ${newType}`;
+    const msg = `When creating an instance of ${requestedMeter} with id=${id.key}, ` +
+      `found a ${registeredType} but was expecting a ${newType}`;
     if (this.config.strictMode) {
       throw new Error(msg);
     } else {
@@ -217,11 +218,10 @@ class AtlasRegistry {
     if (m) {
       if (this.hasCorrectType(id, m, meter)) {
         return m;
-      } else {
-        // wrong type registered, return a dummy meter not associated
-        // with the registry (if running under strictMode the above throws)
-        return meter;
       }
+      // wrong type registered, return a dummy meter not associated
+      // with the registry (if running under strictMode hasCorrectType throws)
+      return meter;
     }
 
     this.metersMap.set(key, meter);

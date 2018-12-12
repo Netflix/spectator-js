@@ -27,7 +27,6 @@ class CounterState {
       const prev = self.prevNumbers[i];
       const current = f();
       if (current > prev) {
-        console.log(`Incrementing ${self.counter.id.key} by ${current - prev}`);
         self.counter.add(current - prev);
         self.prevNumbers[i] = current;
       }
@@ -59,7 +58,6 @@ class ValueState {
     for (let f of self.functions) {
       result += f();
     }
-    console.log(`Setting gauge ${self.gauge.id.key} to ${result}`);
     self.gauge.set(result);
   }
 }
