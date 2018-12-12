@@ -27,6 +27,10 @@ for (let i = 0; i < percentiles.length; ++i) {
  * greatly restrict the worst case overhead.</p>
  */
 class PercentileDistributionSummary {
+  static get(registry, id) {
+    return new PercentileDistributionSummary(registry, id);
+  }
+
   /**
    * Creates a distribution summary object that can be used for estimating percentiles.
    * <b>Percentile distribution summaries are expensive compared to basic distribution summaries

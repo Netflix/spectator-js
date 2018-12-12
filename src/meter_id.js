@@ -71,6 +71,39 @@ class MeterId {
     }
     return this.withTag('statistic', stat);
   }
+
+  static validate(name, tags) {
+    let errors = [];
+    function validateKeyValue(k, v) {
+      if (!k) {
+        errors.push('One or more tag keys are missing');
+      }
+      if (!v) {
+        const keyForMsg = k || '<missing>';
+        errors.push(`Value missing for key=${keyForMsg}`);
+      }
+    }
+
+    if (!name) {
+      errors.push('name must be present');
+    }
+
+    if (tags) {
+      if (tags instanceof Map) {
+        for (let [k, v] of tags.entries()) {
+          validateKeyValue(k, v);
+        }
+      } else {
+        for (let key of Object.keys(tags)) {
+          validateKeyValue(key, tags[key]);
+        }
+      }
+    }
+
+    if (errors.length > 0) {
+      throw new Error('Invalid MeterId: ' + errors.join('\n\t'));
+    }
+  }
 }
 
 module.exports = MeterId;

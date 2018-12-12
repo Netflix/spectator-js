@@ -2,6 +2,10 @@
 
 /** Distribution summaries that get updated based on the bucket for recorded values. */
 class BucketDistributionSummary {
+  static get(registry, id, bucketFunction) {
+    return new BucketDistributionSummary(registry, id, bucketFunction);
+  }
+
   /**
    * Creates a distribution summary object that manages a set of distribution summaries based on
    * the bucket function supplied. Calling record will be mapped to the record on the appropriate

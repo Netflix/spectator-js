@@ -8,6 +8,7 @@ const MeterId = require('../src/meter_id');
 
 function newRegistry() {
   const c = {
+    strictMode: true,
     commonTags: {
       'nf.node': 'i-12345',
       'nf.cluster': 'app-main',

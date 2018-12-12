@@ -2,6 +2,10 @@
 
 /** Timers that get updated based on the bucket for recorded values. */
 class BucketTimer {
+  static get(registry, id, bucketFunction) {
+    return new BucketTimer(registry, id, bucketFunction);
+  }
+
   /**
    * Creates a timer object that manages a set of timers based on the bucket
    * function supplied. Calling record will be mapped to the record on the appropriate timer.

@@ -17,7 +17,7 @@ describe('Bucket Distribution Summary', () => {
 
   it('basic operations', () => {
     const r = new Registry();
-    const c = new BucketDistributionSummary(r, r.newId('test'), BucketFunctions.latency(4, 's'));
+    const c = BucketDistributionSummary.get(r, r.newId('test'), BucketFunctions.latency(4, 's'));
 
     c.record(3750 * 1e6);
     let meters = filter(r.meters(), 'test');

@@ -30,6 +30,10 @@ for (let i = 0; i < percentiles.length; ++i) {
  * and restricting to this window reduces the worst case multiple from 276 to 58</p>
  */
 class PercentileTimer {
+  static get(registry, id) {
+    return new PercentileTimer(registry, id);
+  }
+
   /**
    * Creates a timer object that can be used for estimating percentiles. <b>Percentile timers
    * are expensive compared to basic timers from the registry.</b> Be diligent with ensuring

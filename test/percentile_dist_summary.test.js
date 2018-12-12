@@ -24,7 +24,7 @@ describe('Percentile Distribution Summaries', () => {
 
   it('constructor', () => {
     const r = new Registry();
-    const ds = new PercentileDistributionSummary(r, r.newId('p'));
+    const ds = PercentileDistributionSummary.get(r, r.newId('p'));
     checkPercentiles(ds, 0);
   });
 

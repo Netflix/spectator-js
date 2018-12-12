@@ -103,12 +103,15 @@ class Publisher {
   sendMetricsNow() {
     const ms = this.registryMeasurements();
     const log = this.registry.logger;
+    const uri = this.registry.config.uri;
+    if (!uri) {
+      return;
+    }
 
     if (ms.length === 0) {
       log.debug('No measurements to send');
     } else {
       const payload = this.payloadForMeasurements(ms);
-      const uri = this.registry.config.uri;
       log.info('Sending ' + ms.length + ' measurements to ' + uri);
       this.http.postJson(uri, payload);
     }
@@ -119,7 +122,15 @@ class Publisher {
 class AtlasRegistry {
   constructor(config) {
     this.config = config || {};
+    if (!this.config.gaugePollingFrequency) {
+      this.config.gaugePollingFrequency = 10000;
+    }
+    if (!this.config.strictMode) {
+      this.config.strictMode = false; // replace undefined with false
+    }
+
     this.metersMap = new Map();
+    this.state = new Map();
     this.started = false;
     this.publisher = new Publisher(this);
     this.logger = this.config.logger || new SimpleLogger();
@@ -136,6 +147,34 @@ class AtlasRegistry {
       for (const key of Object.keys(commonTags)) {
         this.commonTags.set(key, commonTags[key]);
       }
+    }
+  }
+
+  hasCorrectType(id, registeredMeter, newMeter) {
+    const actualClass = registeredMeter.constructor.name;
+    const expectedClass = newMeter.constructor.name;
+    let msg;
+    if (actualClass !== expectedClass) {
+      msg = `Expecting a different type when creating a ${expectedClass} for id=${id.key}. ` +
+        `Found ${actualClass} already registered with the same id when ${expectedClass} was expected`;
+      if (this.config.strictMode) {
+        throw new Error(msg);
+      } else {
+        this.logger.error(msg)
+      }
+      return false;
+    }
+
+    return true;
+  }
+
+  throwTypeError(id, registeredType, newType, requestedMeter) {
+    const msg = `When creating an instance of ${requestedMeter} with id=${id.key}, found ${registeredType} ` +
+      `but was expecting a ${newType}`;
+    if (this.config.strictMode) {
+      throw new Error(msg);
+    } else {
+      this.logger.error(msg);
     }
   }
 
@@ -170,14 +209,21 @@ class AtlasRegistry {
     this.startId = setInterval(this.publish, c.frequency || 5000, this);
   }
 
-  newMeter(id, factoryFun) {
+  newMeter(id, Clazz) {
     const key = id.key;
+    const meter = new Clazz(id);
 
-    if (this.metersMap.has(key)) {
-      return this.metersMap.get(key);
+    const m = this.metersMap.get(key);
+    if (m) {
+      if (this.hasCorrectType(id, m, meter)) {
+        return m;
+      } else {
+        // wrong type registered, return a dummy meter not associated
+        // with the registry (if running under strictMode the above throws)
+        return meter;
+      }
     }
 
-    const meter = factoryFun(id);
     this.metersMap.set(key, meter);
     return meter;
   }
@@ -191,26 +237,36 @@ class AtlasRegistry {
 
   counter(nameOrId, tags) {
     const meterId = this._getId(nameOrId, tags);
-    return this.newMeter(meterId, id => new Counter(id));
+    return this.newMeter(meterId, Counter);
   }
 
   gauge(nameOrId, tags) {
     const meterId = this._getId(nameOrId, tags);
-    return this.newMeter(meterId, id => new Gauge(id));
+    return this.newMeter(meterId, Gauge);
   }
 
   timer(nameOrId, tags) {
     const meterId = this._getId(nameOrId, tags);
-    return this.newMeter(meterId, id => new Timer(id));
+    return this.newMeter(meterId, Timer);
   }
 
   distributionSummary(nameOrId, tags) {
     const meterId = this._getId(nameOrId, tags);
-    return this.newMeter(meterId, id => new DistributionSummary(id));
+    return this.newMeter(meterId, DistributionSummary);
   }
 
   publish(self) {
     self.publisher.sendMetricsNow();
+  }
+
+  _clearStateUpdates() {
+    for (let v of this.state.values()) {
+      if (v.interval) {
+        clearInterval(v.interval);
+        v.interval = undefined;
+      }
+    }
+    this.state = new Map();
   }
 
   stop() {
@@ -221,6 +277,8 @@ class AtlasRegistry {
     clearInterval(this.startId);
     this.startId = undefined;
     this.publish(this);
+
+    this._clearStateUpdates();
   }
 
   measurements() {
@@ -237,6 +295,9 @@ class AtlasRegistry {
   }
 
   newId(name, tags) {
+    if (this.config.strictMode) {
+      MeterId.validate(name, tags);
+    }
     return new MeterId(name, tags);
   }
 }

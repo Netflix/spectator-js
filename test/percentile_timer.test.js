@@ -74,7 +74,7 @@ describe('Percentile Timers', () => {
     const expectedSum = N * (N - 1) / 2;
 
     const r = new Registry();
-    const timer = new PercentileTimer(r, r.newId('name'));
+    const timer = PercentileTimer.get(r, r.newId('name'));
     for (let i = 0; i < N; ++i) {
       timer.record([0, millisToNanos(i)]);
     }
