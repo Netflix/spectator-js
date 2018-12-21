@@ -39,4 +39,14 @@ describe('Counters', () => {
     assert.lengthOf(counter.measure(), 0); // resets
     assert.deepEqual([{id: id.withStat('count'), v: 3}], ms);
   });
+
+  it('should ignore add(0)', () => {
+    const id = new MeterId('c');
+    const counter = new Counter(id);
+    counter.add(0);
+    assert.equal(counter.count, 0);
+
+    counter.increment(0);
+    assert.equal(counter.count, 0);
+  });
 });

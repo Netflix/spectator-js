@@ -15,7 +15,7 @@ class HttpClient {
     const log = this.registry.logger;
     const url = URL.parse(endpoint);
 
-    const baseId = this.registry.newId('http.req.complete',
+    const baseId = this.registry.createId('http.req.complete',
       {method: 'POST', mode: 'http-client', client: 'spectator-js'});
     const jsonStr = JSON.stringify(payload);
     headers['Content-length'] = Buffer.byteLength(jsonStr);

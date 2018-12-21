@@ -48,16 +48,16 @@ describe('AtlasRegistry', () => {
 
   it('should only start if a publish uri is provided', () => {
     const r = newRegistry();
-    assert.isFalse(r.shouldStart());
+    assert.isFalse(r._shouldStart());
 
     const r2 = new AtlasRegistry({uri: 'http://localhost/foo'});
-    assert.isTrue(r2.shouldStart());
+    assert.isTrue(r2._shouldStart());
 
     r2.start();
-    assert.isFalse(r2.shouldStart()); // already started
+    assert.isFalse(r2._shouldStart()); // already started
 
     r2.stop();
-    assert.isTrue(r2.shouldStart()); // start after stop is ok
+    assert.isTrue(r2._shouldStart()); // start after stop is ok
 
     r.start(); // should be a nop
     assert.isFalse(r.started);
@@ -92,10 +92,10 @@ describe('AtlasRegistry', () => {
       for (let m of ms) {
         if (m.id.name === 'hack.ctr') {
           // unknown statistic
-          m.id = r.newId('hack.ctr', {statistic: 'foo'});
+          m.id = r.createId('hack.ctr', {statistic: 'foo'});
         } else if (m.id.name === 'hack.gauge') {
           // remove statistic
-          m.id = r.newId('hack.gauge');
+          m.id = r.createId('hack.gauge');
         }
         newMeasurements.push(m);
       }
@@ -263,6 +263,6 @@ describe('AtlasRegistry', () => {
       };
       assert.deepEqual(entries, [c, tmrCount, tmrTotal, tmrTotalSq, tmrMax]);
     };
-    r.publish(r);
+    AtlasRegistry._publish(r);
   });
 });

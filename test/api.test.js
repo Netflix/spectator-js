@@ -1,12 +1,12 @@
 'use strict';
 
-const spectator = require('../');
+const Registry = require('../').Registry;
 const chai = require('chai');
 const assert = chai.assert;
 
 describe('spectator registry', () => {
   it('should provide counters', () => {
-    const registry = spectator.newRegistry();
+    const registry = new Registry();
     const counter = registry.counter('foo');
     counter.increment();
     const counterWithTag = registry.counter('foo', {
@@ -19,7 +19,7 @@ describe('spectator registry', () => {
   });
 
   it('should provide timers', () => {
-    const registry = spectator.newRegistry();
+    const registry = new Registry();
     const timer = registry.timer('timer');
     timer.record(1);
     const timerT = registry.timer('timer', {k: 'v2'});
@@ -31,7 +31,7 @@ describe('spectator registry', () => {
   });
 
   it('should provide distribution summaries', () => {
-    const registry = spectator.newRegistry();
+    const registry = new Registry();
     const ds = registry.distributionSummary('ds');
     ds.record(1000);
 
@@ -44,7 +44,7 @@ describe('spectator registry', () => {
   });
 
   it('should provide gauges', () => {
-    const registry = spectator.newRegistry();
+    const registry = new Registry();
     const g = registry.gauge('g');
     g.set(42);
     const gT = registry.gauge('g', {k: 'v'});

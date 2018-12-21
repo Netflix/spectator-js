@@ -93,7 +93,7 @@ class PercentileTimer {
         if (this.id) {
           id = this.id;
         } else {
-          id = this.registry.newId(this.name, this.tags);
+          id = this.registry.createId(this.name, this.tags);
         }
         return new PercentileTimer(this.registry, id, this.min, this.max);
       }

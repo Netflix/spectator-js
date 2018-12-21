@@ -17,7 +17,7 @@ describe('Bucket Counters', () => {
 
   it('basic operations', () => {
     const r = new Registry();
-    const c = BucketCounter.get(r, r.newId('test'), BucketFunctions.latency(4, 's'));
+    const c = BucketCounter.get(r, r.createId('test'), BucketFunctions.latency(4, 's'));
 
     c.record(3750 * 1e6);
     let meters = filter(r.meters(), 'test');

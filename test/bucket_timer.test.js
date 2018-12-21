@@ -17,7 +17,7 @@ describe('Bucket Timer', () => {
 
   it('basic operations', () => {
     const r = new Registry();
-    const c = BucketTimer.get(r, r.newId('test'), BucketFunctions.latency(4, 's'));
+    const c = BucketTimer.get(r, r.createId('test'), BucketFunctions.latency(4, 's'));
 
     c.record(3, 750 * 1e6);
     let meters = filter(r.meters(), 'test');

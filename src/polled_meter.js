@@ -92,7 +92,7 @@ class PolledMeter {
         if (this.id) {
           id = this.id;
         } else {
-          id = r.newId(this.name, this.tags);
+          id = r.createId(this.name, this.tags);
         }
         const gauge = r.gauge(id);
         const state = r.state;
@@ -117,7 +117,7 @@ class PolledMeter {
         if (this.id) {
           id = this.id;
         } else {
-          id = r.newId(this.name, this.tags);
+          id = r.createId(this.name, this.tags);
         }
         const counter = r.counter(id);
         const state = r.state;

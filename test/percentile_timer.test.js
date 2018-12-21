@@ -28,7 +28,7 @@ describe('Percentile Timers', () => {
 
   it('basic use', () => {
     const r = new Registry();
-    const id = r.newId('p');
+    const id = r.createId('p');
     const t = new PercentileTimer(r, id);
     checkPercentiles(t, 0);
   });
@@ -57,7 +57,7 @@ describe('Percentile Timers', () => {
 
   it('builder with id', () => {
     const r = new Registry();
-    const t = new PercentileTimer.Builder(r).withId(r.newId('name', {k: 'v'})).build();
+    const t = new PercentileTimer.Builder(r).withId(r.createId('name', {k: 'v'})).build();
     assert.equal(t.id.key, 'name|k=v');
   });
 
@@ -74,7 +74,7 @@ describe('Percentile Timers', () => {
     const expectedSum = N * (N - 1) / 2;
 
     const r = new Registry();
-    const timer = PercentileTimer.get(r, r.newId('name'));
+    const timer = PercentileTimer.get(r, r.createId('name'));
     for (let i = 0; i < N; ++i) {
       timer.record([0, millisToNanos(i)]);
     }

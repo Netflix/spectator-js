@@ -22,7 +22,7 @@ class NopRegistry {
     console.log(JSON.stringify(arguments));
   }
 
-  hrtime(time) {
+  hrtime() {
     return [0, 0];
   }
 }
