@@ -24,7 +24,7 @@ describe('Percentile Distribution Summaries', () => {
 
   it('constructor', () => {
     const r = new Registry();
-    const ds = PercentileDistributionSummary.get(r, r.newId('p'));
+    const ds = PercentileDistributionSummary.get(r, r.createId('p'));
     checkPercentiles(ds, 0);
   });
 
@@ -44,7 +44,7 @@ describe('Percentile Distribution Summaries', () => {
   it('builder with id', () => {
     const r = new Registry();
     const ds = new PercentileDistributionSummary.Builder(r)
-      .withId(r.newId('name', {k: 'v'})).build();
+      .withId(r.createId('name', {k: 'v'})).build();
     assert.equal(ds.id.key, 'name|k=v');
   });
 

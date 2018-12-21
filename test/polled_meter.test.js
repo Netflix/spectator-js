@@ -23,7 +23,7 @@ describe('PolledMeter', () => {
 
   it('monitorValue using id', (done) => {
     const r = new Registry({gaugePollingFrequency: 1, strictMode: true});
-    const id = r.newId('foo');
+    const id = r.createId('foo');
     let x = 1;
     PolledMeter.using(r).withId(id).monitorValue(() => x);
     x = 42;
@@ -39,7 +39,7 @@ describe('PolledMeter', () => {
 
   it('monitorValue using multiple functions', (done) => {
     const r = new Registry({gaugePollingFrequency: 1, strictMode: true});
-    const id = r.newId('foo');
+    const id = r.createId('foo');
     let x = 1;
     PolledMeter.using(r).withId(id).monitorValue(() => x);
     PolledMeter.using(r).withId(id).monitorValue(() => x + 1);
@@ -77,7 +77,7 @@ describe('PolledMeter', () => {
 
   it('throws when mixing polled meters', () => {
     const r = new Registry({gaugePollingFrequency: 1, strictMode: true});
-    const id = r.newId('foo');
+    const id = r.createId('foo');
 
     let x = 100;
     PolledMeter.using(r).withId(id).monitorMonotonicNumber(() => x);
@@ -104,7 +104,7 @@ describe('PolledMeter', () => {
       errorCount++;
     };
 
-    const id = r.newId('foo');
+    const id = r.createId('foo');
     let x = 100;
     PolledMeter.using(r).withId(id).monitorMonotonicNumber(() => x);
     assert.equal(errorCount, 0);

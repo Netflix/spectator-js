@@ -15,7 +15,7 @@ describe('IntervalCounter', () => {
       return [0, 123];
     };
 
-    const counter = IntervalCounter.get(r, r.newId('ic'));
+    const counter = IntervalCounter.get(r, r.createId('ic'));
     counter.add(5);
     assert.equal(counter.count, 5);
 
@@ -48,8 +48,8 @@ describe('IntervalCounter', () => {
       }
       return [0, 123];
     };
-    const counter = IntervalCounter.get(r, r.newId('ic'));
-    const counter2 = IntervalCounter.get(r, r.newId('ic'));
+    const counter = IntervalCounter.get(r, r.createId('ic'));
+    const counter2 = IntervalCounter.get(r, r.createId('ic'));
     // both should refer to the same counter
     counter.add(1);
 
@@ -78,7 +78,7 @@ describe('IntervalCounter', () => {
     const r = new Registry({gaugePollingFrequency: 1, strictMode: true});
     const basicCounter = r.counter('ic');
 
-    assert.throws(() => IntervalCounter.get(r, r.newId('ic')),
+    assert.throws(() => IntervalCounter.get(r, r.createId('ic')),
       /found a Counter but was expecting an IntervalCounter/);
     basicCounter.add(2);
 
@@ -89,7 +89,7 @@ describe('IntervalCounter', () => {
 
   it('protects against the key used in the state map being used for other purposes', () => {
     const r = new Registry({gaugePollingFrequency: 1, strictMode: true});
-    const id = r.newId('ic');
+    const id = r.createId('ic');
     r.state.set(id.key, 'Foo');
     assert.throws(() => IntervalCounter.get(r, id),
       /found a String but was expecting an IntervalCounter/);
@@ -107,10 +107,10 @@ describe('IntervalCounter', () => {
       console.log(`ERROR: ${msg}`);
     };
 
-    const id = r.newId('ic');
+    const id = r.createId('ic');
     IntervalCounter.get(r, id);
 
-    const id2 = r.newId('ic2');
+    const id2 = r.createId('ic2');
     IntervalCounter.get(r, id2);
     assert.equal(errorCount, 2);
 

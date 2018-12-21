@@ -7,14 +7,16 @@ const Timer = require('./timer');
 const DistributionSummary = require('./dist_summary');
 const HttpClient = require('./http');
 
+// The default logger. In general users should provide their
+// own logger implementation that integrates with their setup
 class SimpleLogger {
-  info() {
-    arguments[0] = 'INFO: ' + arguments[0];
+  debug() {
+    arguments[0] = 'DEBUG: ' + arguments[0];
     console.log.apply(console, arguments);
   }
 
-  debug() {
-    arguments[0] = 'DEBUG: ' + arguments[0];
+  info() {
+    arguments[0] = 'INFO: ' + arguments[0];
     console.log.apply(console, arguments);
   }
 
@@ -28,7 +30,6 @@ class SimpleLogger {
 class Publisher {
   constructor(registry) {
     this.registry = registry;
-    this.frequency = registry.config.frequency || 5;
     this.http = new HttpClient(registry);
   }
 
@@ -119,7 +120,30 @@ class Publisher {
 
 }
 
+/**
+ * Registry to manage a set of meters.
+ */
 class AtlasRegistry {
+  /**
+   * Creates a new AtlasRegistry with a given config. A config is an object that
+   * controls the behavior of this registry:
+   *
+   *   * uri: URI to use for sending measurements. If not present this registry will not start.
+   *
+   *   * commonTags: Tags to add to all measurements
+   *
+   *   * logger: The logger to use for this registry. Should provide: debug, info, error
+   *             methods that take a string.
+   *
+   *   * strictMode: A boolean that specifies whether extra validations should be performed, and whether to
+   *                 throw or just log errors.
+   *
+   *   * gaugePollingFrequency: milliseconds at which to poll meters. Default 10000.
+   *
+   *   * frequency: milliseconds at which we send updates to our aggregator. Default 5000.
+   *
+   *   @param {Object} config Configuration settings. See above.
+   */
   constructor(config) {
     this.config = config || {};
     if (!this.config.gaugePollingFrequency) {
@@ -150,12 +174,23 @@ class AtlasRegistry {
     }
   }
 
-  hasCorrectType(id, registeredMeter, newMeter) {
+  /**
+   * Checks whether the newMeter and registeredMeter have the same type.
+   * If the registered * was configured to use strictMode then this method
+   * will throw if the types are not compatible.
+   *
+   * @param {Object} registeredMeter the previously registered meter
+   * @param {Object} newMeter meter we are currently trying to register
+   * @return {boolean} whether the types are compatible
+   * @private
+   */
+  _hasCorrectType(registeredMeter, newMeter) {
     const actualClass = registeredMeter.constructor.name;
     const expectedClass = newMeter.constructor.name;
     let msg;
     if (actualClass !== expectedClass) {
-      msg = `Expecting a different type when creating a ${expectedClass} for id=${id.key}. ` +
+      const idStr = registeredMeter.id.key;
+      msg = `Expecting a different type when creating a ${expectedClass} for id=${idStr}. ` +
         `Found ${actualClass} already registered with the same id when ` +
         `${expectedClass} was expected`;
       if (this.config.strictMode) {
@@ -169,6 +204,17 @@ class AtlasRegistry {
     return true;
   }
 
+  /**
+   * Throws or logs an error due to an incompatible meter trying to be registered. If running
+   * under strictMode this method will throw an Error, otherwise it will log an error
+   * message using the registry's logger.
+   *
+   * @param {MeterId} id Meter id of the meter trying to be registered
+   * @param {string} registeredType type already in the registry
+   * @param {string} newType attempted type to be registered
+   * @param {Object} requestedMeter the meter that caused the error
+   * @return {undefined}
+   */
   throwTypeError(id, registeredType, newType, requestedMeter) {
     let article;
     const firstLetter = newType.substr(0, 1).toLowerCase();
@@ -187,7 +233,13 @@ class AtlasRegistry {
     }
   }
 
-  shouldStart() {
+  /**
+   * Determine whether the start method of this registry should do work.
+   *
+   * @return {boolean} Value indicating whether start should proceed, or just do nothing.
+   * @private
+   */
+  _shouldStart() {
     const log = this.logger;
 
     if (this.started) {
@@ -206,29 +258,41 @@ class AtlasRegistry {
     return true;
   }
 
+  /**
+   * Start collecting and sending metrics to an atlas-aggregator service.
+   * @return {undefined}
+   */
   start() {
     const c = this.config;
 
-    if (!this.shouldStart()) {
+    if (!this._shouldStart()) {
       return;
     }
 
     this.logger.info('Starting spectator registry');
     this.started = true;
-    this.startId = setInterval(this.publish, c.frequency || 5000, this);
+    this.startId = setInterval(AtlasRegistry._publish, c.frequency || 5000, this);
   }
 
-  newMeter(id, Clazz) {
+  /**
+   * Adds a new meter to this registry if needed, otherwise it returns the existing meter.
+   *
+   * @param {MeterId} id of the requested meter
+   * @param {*} Class class of the requested meter. It assumes it has a constructor that takes an id.
+   * @return {*} A meter of class `Class`
+   * @private
+   */
+  _newMeter(id, Class) {
     const key = id.key;
-    const meter = new Clazz(id);
+    const meter = new Class(id);
 
     const m = this.metersMap.get(key);
     if (m) {
-      if (this.hasCorrectType(id, m, meter)) {
+      if (this._hasCorrectType(m, meter)) {
         return m;
       }
       // wrong type registered, return a dummy meter not associated
-      // with the registry (if running under strictMode hasCorrectType throws)
+      // with the registry (if running under strictMode _hasCorrectType throws)
       return meter;
     }
 
@@ -236,38 +300,83 @@ class AtlasRegistry {
     return meter;
   }
 
+  /**
+   * Gets an id from a base id or name and optional additonal tags.
+   *
+   * @param {*} nameOrId either a string or a base id
+   * @param {*} tags an object or Map with tags
+   * @return {MeterId} A new MeterId
+   * @private
+   */
   _getId(nameOrId, tags) {
     if (nameOrId.constructor.name === 'MeterId') {
       return nameOrId.withTags(tags);
     }
-    return this.newId(nameOrId, tags);
+    return this.createId(nameOrId, tags);
   }
 
+  /**
+   * Measures the rate of some activity. A counter is for continuously incrementing sources like
+   * the number of requests that are coming into a server.
+   *
+   * @param {*} nameOrId either a string with a name, or a base id
+   * @param {*} tags an object or Map with tags
+   * @return {Counter} A counter that is registered with this registry.
+   */
   counter(nameOrId, tags) {
     const meterId = this._getId(nameOrId, tags);
-    return this.newMeter(meterId, Counter);
+    return this._newMeter(meterId, Counter);
   }
 
-  gauge(nameOrId, tags) {
-    const meterId = this._getId(nameOrId, tags);
-    return this.newMeter(meterId, Gauge);
-  }
-
-  timer(nameOrId, tags) {
-    const meterId = this._getId(nameOrId, tags);
-    return this.newMeter(meterId, Timer);
-  }
-
+  /**
+   * Measures the rate and variation in amount for some activity. For example, it could be used to
+   * get insight into the variation in response sizes for requests to a server.
+   *
+   * @param {*} nameOrId either a string with a name, or a base id
+   * @param {*} tags an object or Map with tags
+   * @return {DistributionSummary} A distribution summary that is registered with this registry.
+   */
   distributionSummary(nameOrId, tags) {
     const meterId = this._getId(nameOrId, tags);
-    return this.newMeter(meterId, DistributionSummary);
+    return this._newMeter(meterId, DistributionSummary);
   }
 
-  publish(self) {
+  /**
+   * Represents a value sampled from another source. For example, the size of queue. The caller
+   * is responsible for sampling the value regularly and calling its set() method.
+   * If you do not want to worry about the sampling, then use {@link PolledMeter}
+   * instead.
+   *
+   * @param {*} nameOrId either a string with a name, or a base id
+   * @param {*} tags an object or Map with tags
+   * @return {Gauge} A gauge that is registered with this registry.
+   */
+  gauge(nameOrId, tags) {
+    const meterId = this._getId(nameOrId, tags);
+    return this._newMeter(meterId, Gauge);
+  }
+
+  /**
+   * Measures the rate and time taken for short running tasks.
+   *
+   * @param {*} nameOrId either a string with a name, or a base id
+   * @param {*} tags an object or Map with tags
+   * @return {Timer} A timer that is registered with this registry.
+   */
+  timer(nameOrId, tags) {
+    const meterId = this._getId(nameOrId, tags);
+    return this._newMeter(meterId, Timer);
+  }
+
+
+  // publish metrics now
+  static _publish(self) {
     self.publisher.sendMetricsNow();
   }
 
-  _clearStateUpdates() {
+  // removes the previous state
+  // ensuring that any registered intervals are cleared
+  _clearState() {
     for (let v of this.state.values()) {
       if (v.interval) {
         clearInterval(v.interval);
@@ -277,6 +386,12 @@ class AtlasRegistry {
     this.state = new Map();
   }
 
+  /**
+   * Stop background activity. This includes sending metrics to an atlas
+   * aggregator service and polling of meters.
+   *
+   * @return {undefined}
+   */
   stop() {
     const log = this.logger;
 
@@ -284,11 +399,18 @@ class AtlasRegistry {
     this.started = false;
     clearInterval(this.startId);
     this.startId = undefined;
-    this.publish(this);
+    AtlasRegistry._publish(this);
 
-    this._clearStateUpdates();
+    this._clearState();
   }
 
+
+  /**
+   * Get an array of measurements.
+   * @return {Array}
+   *   An array consisting of all measurements that were produced
+   *   by our registered meters.
+   */
   measurements() {
     let a = [];
 
@@ -298,11 +420,23 @@ class AtlasRegistry {
     return a;
   }
 
+  /**
+   * Get an array of registered meters.
+   * @return {any[]} An array consisting of all meters currently registered.
+   */
   meters() {
     return Array.from(this.metersMap.values());
   }
 
-  newId(name, tags) {
+
+  /**
+   * Creates an identifier for a meter.
+   *
+   * @param {string} name Description of the measurement that is being collected.
+   * @param {*} tags Other dimensions that can be used to classify the measurement.
+   * @return {MeterId} A new meter id.
+   */
+  createId(name, tags) {
     if (this.config.strictMode) {
       MeterId.validate(name, tags);
     }
@@ -313,7 +447,7 @@ class AtlasRegistry {
    * Schedule a task periodically.  See setInterval()
    *
    * @param {*} args - Arguments delegated to setInterval
-   * @returns {number}
+   * @returns {Object} A timeout for use with clearInterval
    */
   schedulePeriodically(args) {
     return setInterval.apply(this, arguments);

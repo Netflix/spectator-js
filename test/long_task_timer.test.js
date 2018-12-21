@@ -14,7 +14,7 @@ describe('LongTaskTimer', () => {
       }
       return [0, 123];
     };
-    const timer = LongTaskTimer.get(r, r.newId('ltt'));
+    const timer = LongTaskTimer.get(r, r.createId('ltt'));
     const task = timer.start();
 
     setTimeout(() => {
@@ -46,8 +46,8 @@ describe('LongTaskTimer', () => {
       }
       return [0, 123];
     };
-    const timer = LongTaskTimer.get(r, r.newId('ltt'));
-    const timer2 = LongTaskTimer.get(r, r.newId('ltt'));
+    const timer = LongTaskTimer.get(r, r.createId('ltt'));
+    const timer2 = LongTaskTimer.get(r, r.createId('ltt'));
     // both should refer to the same timer
     const task = timer.start();
 
@@ -76,7 +76,7 @@ describe('LongTaskTimer', () => {
     const r = new Registry({gaugePollingFrequency: 1, strictMode: true});
     const basicTimer = r.timer('ltt');
 
-    assert.throws(() => LongTaskTimer.get(r, r.newId('ltt')),
+    assert.throws(() => LongTaskTimer.get(r, r.createId('ltt')),
       /found a Timer but was expecting a LongTaskTimer/);
     basicTimer.record(2, 0);
 
@@ -87,7 +87,7 @@ describe('LongTaskTimer', () => {
 
   it('protects against the key used in the state map being used for other purposes', () => {
     const r = new Registry({gaugePollingFrequency: 1, strictMode: true});
-    const id = r.newId('ltt');
+    const id = r.createId('ltt');
     r.state.set(id.key, 'Foo');
     assert.throws(() => LongTaskTimer.get(r, id),
       /found a String but was expecting a LongTaskTimer/);
@@ -105,7 +105,7 @@ describe('LongTaskTimer', () => {
       console.log(`ERROR: ${msg}`);
     };
 
-    const id = r.newId('ltt');
+    const id = r.createId('ltt');
     const t = LongTaskTimer.get(r, id);
     t.start();
     t.start();
@@ -113,7 +113,7 @@ describe('LongTaskTimer', () => {
     assert.equal(errorCount, 1);
 
 
-    const id2 = r.newId('ltt2');
+    const id2 = r.createId('ltt2');
     LongTaskTimer.get(r, id2);
     assert.equal(errorCount, 2);
 
@@ -122,7 +122,7 @@ describe('LongTaskTimer', () => {
 
   it('negative duration when stopping a non-existent task', () => {
     const r = new Registry({gaugePollingFrequency: 1, strictMode: false});
-    const t = LongTaskTimer.get(r, r.newId('ltt'));
+    const t = LongTaskTimer.get(r, r.createId('ltt'));
     const taskId = t.start();
     assert.isBelow(t.stop(taskId + 1), 0);
     r.stop();

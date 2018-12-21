@@ -38,7 +38,7 @@ class Server {
   constructor(registry) {
     this.registry = registry;
     // create a base Id, to which we'll add some dynamic tags later
-    this.requestCountId = registry.newId('server.requestCount', {version: 'v1'});
+    this.requestCountId = registry.createId('server.requestCount', {version: 'v1'});
     this.requestLatency = registry.timer('server.requestLatency');
     this.responseSize = registry.distributionSummary('server.responseSizes');
   }
