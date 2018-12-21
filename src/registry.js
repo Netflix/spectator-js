@@ -6,8 +6,6 @@ const Gauge = require('./gauge');
 const Timer = require('./timer');
 const DistributionSummary = require('./dist_summary');
 const HttpClient = require('./http');
-const process = require("./nop_registry");
-const process = require("./nop_registry");
 
 // The default logger. In general users should provide their
 // own logger implementation that integrates with their setup
