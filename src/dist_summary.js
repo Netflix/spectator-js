@@ -2,7 +2,7 @@
 
 /**
  * Track the sample distribution of events. An example would be the response sizes for requests
- * hitting and http server.
+ * hitting an http server.
  *
  *  This meter will report four measurements to atlas:
  * <ul>
