@@ -1,8 +1,8 @@
 'use strict';
 
 /**
- * Track the sample distribution of events. An example would be the response sizes for requests
- * hitting and http server.
+ * Track the duration of short events. An example would be the response latency
+ * of an http server.
  *
  *  This meter will report four measurements to atlas:
  * <ul>
