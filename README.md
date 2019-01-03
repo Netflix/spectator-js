@@ -17,6 +17,10 @@ for instrumenting nodejs applications, sending metrics to an Atlas aggregator se
 ```javascript
 'use strict';
 
+const spectator = require('nflx-spectator');
+
+// Netflix applications can use the nflx-spectator-config node module available
+// internally through artifactory to generate the config required by nflx-spectator
 function getConfig() {
   return {
     commonTags: {'nf.node': 'i-1234'},
@@ -24,8 +28,6 @@ function getConfig() {
     timeout: 1000 // milliseconds 
   }
 }
-
-const spectator = require('nflx-spectator');
 
 class Response {
   constructor(status, size) {
@@ -64,7 +66,7 @@ class Server {
 }
 
 const config = getConfig();
-const registry = spectator.newRegistry(config);
+const registry = new spectator.Registry(config);
 
 class Request {
   constructor(country) {
