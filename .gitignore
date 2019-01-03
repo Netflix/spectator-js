@@ -1,3 +1,5 @@
+.idea
 coverage/
 node_modules/
 jsconfig.json
+*.tgz

@@ -1,6 +1,7 @@
 {
   "name": "nflx-spectator",
   "version": "0.0.1",
+  "author": "Daniel Muino <dmuino@gmail.com>",
   "main": "src/index.js",
   "homepage": "https://github.org/Netflix/spectator-js",
   "repository": {
@@ -23,5 +24,8 @@
     "test": "mocha --reporter spec",
     "cover": "node_modules/istanbul/lib/cli.js cover node_modules/mocha/bin/_mocha -- -R spec test/*",
     "lint": "eslint src/*.js test/*.js"
-  }
+  },
+  "files": [
+    "src/*"
+  ]
 }
