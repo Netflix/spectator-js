@@ -63,6 +63,11 @@ describe('AtlasRegistry', () => {
     assert.isFalse(r.started);
   });
 
+  it('start with no stop should not prevent the process from exiting', () => {
+    const r = new AtlasRegistry({uri: 'http://localhost/foo'});
+    r.start();
+  });
+
   it('should handle common tags as Object or map', () => {
     const cfgObject = { commonTags: {k1: 'v1', k2: 'v2'}};
     const rObj = new AtlasRegistry(cfgObject);
