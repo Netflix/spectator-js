@@ -272,6 +272,7 @@ class AtlasRegistry {
     this.logger.info('Starting spectator registry');
     this.started = true;
     this.startId = setInterval(AtlasRegistry._publish, c.frequency || 5000, this);
+    this.startId.unref();
   }
 
   /**
@@ -450,7 +451,9 @@ class AtlasRegistry {
    * @returns {Object} A timeout for use with clearInterval
    */
   schedulePeriodically(args) {
-    return setInterval.apply(this, arguments);
+    const id = setInterval.apply(this, arguments);
+    id.unref();
+    return id;
   }
 
   /**
