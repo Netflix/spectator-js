@@ -105,7 +105,9 @@ class Publisher {
     const ms = this.registryMeasurements();
     const log = this.registry.logger;
     const uri = this.registry.config.uri;
-    if (!uri) {
+    const enabled = this.registry.config.isEnabled();
+
+    if (!uri || !enabled) {
       return;
     }
 
@@ -151,6 +153,9 @@ class AtlasRegistry {
     }
     if (!this.config.strictMode) {
       this.config.strictMode = false; // replace undefined with false
+    }
+    if (!this.config.isEnabled) {
+      this.config.isEnabled = () => true;
     }
 
     this.metersMap = new Map();
