@@ -280,9 +280,10 @@ describe('AtlasRegistry', () => {
     config.isEnabled = () => enabled;
 
     const r = new AtlasRegistry(config);
-    r.publisher.http.postJson = () => called++;
 
     let called = 0;
+    r.publisher.http.postJson = () => called++;
+
     r.counter('foo').increment();
     AtlasRegistry._publish(r);
     assert.equal(called, 1);
