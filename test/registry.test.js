@@ -270,4 +270,40 @@ describe('AtlasRegistry', () => {
     };
     AtlasRegistry._publish(r);
   });
+
+  it('should only send measurements if enabled', () => {
+    const config = {};
+    config.commonTags = { 'nf.node': 'i-1234'};
+    config.uri = 'http://localhost:8080/publish';
+
+    let enabled = true;
+    config.isEnabled = () => enabled;
+
+    const r = new AtlasRegistry(config);
+    r.publisher.http.postJson = () => called++;
+
+    let called = 0;
+    r.counter('foo').increment();
+    AtlasRegistry._publish(r);
+    assert.equal(called, 1);
+
+    r.counter('foo').increment();
+    AtlasRegistry._publish(r);
+    assert.equal(called, 2);
+
+    enabled = false;
+    r.counter('foo').increment();
+    AtlasRegistry._publish(r);
+    assert.equal(called, 2);
+
+    enabled = true;
+    r.counter('foo').increment();
+    AtlasRegistry._publish(r);
+    assert.equal(called, 3);
+
+    enabled = false;
+    r.counter('foo').increment();
+    AtlasRegistry._publish(r);
+    assert.equal(called, 3);
+  });
 });
