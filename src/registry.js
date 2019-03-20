@@ -101,8 +101,17 @@ class Publisher {
     return this.registry.measurements().filter(shouldSend);
   }
 
+  _sendMeasurements(measurements) {
+    const log = this.registry.logger;
+    const uri = this.registry.config.uri;
+    log.info('Sending ' + measurements.length + ' measurements to ' + uri);
+    const payload = this.payloadForMeasurements(measurements);
+    this.http.postJson(uri, payload);
+  }
+
   sendMetricsNow() {
-    const ms = this.registryMeasurements();
+    const batchSize = this.registry.config.batchSize;
+    const measurements = this.registryMeasurements();
     const log = this.registry.logger;
     const uri = this.registry.config.uri;
     const enabled = this.registry.config.isEnabled();
@@ -111,16 +120,17 @@ class Publisher {
       return;
     }
 
-    if (ms.length === 0) {
+    if (measurements.length === 0) {
       log.debug('No measurements to send');
     } else {
-      const payload = this.payloadForMeasurements(ms);
-      log.info('Sending ' + ms.length + ' measurements to ' + uri);
-      this.http.postJson(uri, payload);
+      for (let i = 0; i < measurements.length; i += batchSize) {
+        const batch = measurements.slice(i, i + batchSize);
+        this._sendMeasurements(batch);
+      }
     }
   }
-
 }
+
 
 /**
  * Registry to manage a set of meters.
@@ -156,6 +166,9 @@ class AtlasRegistry {
     }
     if (!this.config.isEnabled) {
       this.config.isEnabled = () => true;
+    }
+    if (!this.config.batchSize) {
+      this.config.batchSize = 10000;
     }
 
     this.metersMap = new Map();
