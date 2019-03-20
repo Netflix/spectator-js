@@ -307,4 +307,32 @@ describe('AtlasRegistry', () => {
     AtlasRegistry._publish(r);
     assert.equal(called, 3);
   });
+
+  it('should batch measurements', () => {
+    const config = {};
+    config.uri = 'http://localhost:8080/publish';
+    config.batchSize = 2;
+
+    const r = new AtlasRegistry(config);
+
+    let called = 0;
+    let sent = 0;
+    r.publisher._sendMeasurements = (ms) => {
+      sent += ms.length;
+      called++;
+      assert.isAtMost(ms.length, config.batchSize);
+    };
+
+    const numCounters = 12;
+    for (let i = 0; i < numCounters; ++i) {
+      r.counter("foo" + i).increment();
+    }
+    AtlasRegistry._publish(r);
+    let expectedBatches = Math.floor(numCounters / config.batchSize);
+    if (numCounters % config.batchSize !== 0) {
+      expectedBatches++;
+    }
+    assert.equal(called, expectedBatches);
+    assert.equal(sent, numCounters);
+  });
 });
