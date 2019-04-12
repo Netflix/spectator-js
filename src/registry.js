@@ -24,6 +24,12 @@ class SimpleLogger {
     arguments[0] = 'ERROR: ' + arguments[0];
     console.log.apply(console, arguments);
   }
+
+  trace() {}
+
+  isLevelEnabled(level) {
+    return level !== 'trace';
+  }
 }
 
 // internal class used to publish measurements to an aggregator service
@@ -107,6 +113,11 @@ class Publisher {
     log.info('Sending ' + measurements.length + ' measurements to ' + uri);
     const payload = this.payloadForMeasurements(measurements);
     this.http.postJson(uri, payload);
+    if (log.isLevelEnabled('trace')) {
+      for (const m of measurements) {
+        log.trace(`Sent: ${m.id.key}=${m.v}`);
+      }
+    }
   }
 
   sendMetricsNow() {

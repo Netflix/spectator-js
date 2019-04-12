@@ -7,9 +7,7 @@ function initialize() {
   const DIGITS = 2;
   bucketValues.push(1, 2, 3);
 
-  let exp = DIGITS;
-
-  while (exp < 56) {
+  for (let exp = DIGITS; exp < 56; exp += DIGITS) {
     let current = Math.pow(2, exp);
     const delta = Math.floor(current / 3);
     let next = current * 4 - delta;
@@ -18,8 +16,8 @@ function initialize() {
       bucketValues.push(current);
       current += delta;
     }
-    exp += DIGITS;
   }
+
   // unfortunately we only get 56 bits of precision so
   // we generated this table with our C++ implementation
   // following the above algorithm
