@@ -6,31 +6,7 @@ const Gauge = require('./gauge');
 const Timer = require('./timer');
 const DistributionSummary = require('./dist_summary');
 const HttpClient = require('./http');
-
-// The default logger. In general users should provide their
-// own logger implementation that integrates with their setup
-class SimpleLogger {
-  debug() {
-    arguments[0] = 'DEBUG: ' + arguments[0];
-    console.log.apply(console, arguments);
-  }
-
-  info() {
-    arguments[0] = 'INFO: ' + arguments[0];
-    console.log.apply(console, arguments);
-  }
-
-  error() {
-    arguments[0] = 'ERROR: ' + arguments[0];
-    console.log.apply(console, arguments);
-  }
-
-  trace() {}
-
-  isLevelEnabled(level) {
-    return level !== 'trace';
-  }
-}
+const getLoggers = require('./logger');
 
 // internal class used to publish measurements to an aggregator service
 class Publisher {
@@ -186,7 +162,7 @@ class AtlasRegistry {
     this.state = new Map();
     this.started = false;
     this.publisher = new Publisher(this);
-    this.logger = this.config.logger || new SimpleLogger();
+    this.logger = this.config.logger || getLoggers(this.config.logLevel);
     let commonTags = this.config.commonTags;
 
     if (!commonTags) {
