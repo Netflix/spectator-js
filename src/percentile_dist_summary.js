@@ -4,7 +4,7 @@ const PercentileBuckets = require('./percentile_buckets');
 
 const percentiles = new Array(PercentileBuckets.length());
 for (let i = 0; i < percentiles.length; ++i) {
-  let hex = i.toString(16);
+  let hex = i.toString(16).toUpperCase();
   const hexLen = hex.length;
   const zerosNeeded = 4 - hexLen;
   for (let z = 0; z < zerosNeeded; ++z) {
