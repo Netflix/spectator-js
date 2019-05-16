@@ -86,7 +86,7 @@ class Publisher {
   _sendMeasurements(measurements) {
     const log = this.registry.logger;
     const uri = this.registry.config.uri;
-    log.info('Sending ' + measurements.length + ' measurements to ' + uri);
+    log.debug('Sending ' + measurements.length + ' measurements to ' + uri);
     const payload = this.payloadForMeasurements(measurements);
     this.http.postJson(uri, payload);
     if (log.isLevelEnabled('trace')) {
