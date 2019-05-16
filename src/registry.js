@@ -89,7 +89,7 @@ class Publisher {
     log.debug('Sending ' + measurements.length + ' measurements to ' + uri);
     const payload = this.payloadForMeasurements(measurements);
     this.http.postJson(uri, payload);
-    if (log.isLevelEnabled('trace')) {
+    if (typeof log.isLevelEnabled === 'function' && log.isLevelEnabled('trace')) {
       for (const m of measurements) {
         log.trace(`Sent: ${m.id.key}=${m.v}`);
       }
