@@ -78,7 +78,7 @@ describe('AtlasRegistry', () => {
     assert.equal(rMap.commonTags.size, 2);
   });
 
-  it('should ignore meters with unknown stats', () => {
+  it('should assume gauges for unknown stats', () => {
     const r = newRegistry();
     r.counter('ctr').increment();
     assert.lengthOf(r.publisher.registryMeasurements(), 1);
@@ -107,7 +107,7 @@ describe('AtlasRegistry', () => {
       return newMeasurements;
     };
     const ms = r.publisher.registryMeasurements();
-    assert.lengthOf(ms, 2);
+    assert.lengthOf(ms, 4);
   });
 
   it('publisher should build a string table', () => {

@@ -475,28 +475,20 @@ class AtlasRegistry {
 
 const ADD_OP = 0;
 const MAX_OP = 10;
-const UNKNOWN_OP = -1;
-const opsForStats = {
-  count: ADD_OP,
-  totalAmount: ADD_OP,
-  totalTime: ADD_OP,
-  totalOfSquares: ADD_OP,
-  percentile: ADD_OP,
-  max: MAX_OP,
-  gauge: MAX_OP,
-  activeTasks: MAX_OP,
-  duration: MAX_OP,
-  unknown: UNKNOWN_OP
+const counterStats = {
+  count: 1,
+  totalAmount: 1,
+  totalTime: 1,
+  totalOfSquares: 1,
+  percentile: 1
 };
 
 function opForMeasurement(measure) {
-  const stat = measure.id.tags.get('statistic') || 'unknown';
-  const op = opsForStats[stat];
-
-  if (op !== undefined) {
-    return op;
+  const stat = measure.id.tags.get('statistic') || '';
+  if (counterStats[stat]) {
+    return ADD_OP;
   }
-  return UNKNOWN_OP;
+  return MAX_OP;
 }
 
 function shouldSend(measure) {
@@ -506,10 +498,7 @@ function shouldSend(measure) {
     return measure.v > 0;
   }
 
-  if (op === MAX_OP) {
-    return !Number.isNaN(measure.v);
-  }
-  return false;
+  return !Number.isNaN(measure.v);
 }
 
 module.exports = AtlasRegistry;
