@@ -12,9 +12,11 @@ counters, distribution summaries, long task timers, and more complex meter
 types (like bucket or percentile timers) using a dimensional data model. 
 
 The generated metrics are periodically sent to an
-[atlas](https://github.com/Netflix/atlas) aggregator.
+[Atlas](https://github.com/Netflix/atlas) Aggregator.
 
-To add Node.js runtime metrics couple this module with the [spectator nodemetrics](https://github.com/Netflix-Skunkworks/spectator-js-nodejsmetrics) module.
+To add Node.js runtime metrics, couple this module with the 
+[Spectator Nodemetrics](https://github.com/Netflix-Skunkworks/spectator-js-nodejsmetrics)
+module.
 
 ## Instrumenting Code
 
