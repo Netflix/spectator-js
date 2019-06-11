@@ -3,14 +3,20 @@
 
 # Spectator-js
 
-> :warning: Experimental
-
-Simple library for instructing code to record dimentional time series.
+Client library for instrumenting applications using a dimensional data model.
 
 ## Description
 
-This implements a basic [Spectator](https://github.com/Netflix/spectator) library
-for instrumenting nodejs applications, sending metrics to an Atlas aggregator service.
+This module can be used to instrument an application using timers, gauges,
+counters, distribution summaries, long task timers, and more complex meter
+types (like bucket or percentile timers) using a dimensional data model. 
+
+The generated metrics are periodically sent to an
+[Atlas](https://github.com/Netflix/atlas) Aggregator.
+
+To add Node.js runtime metrics, couple this module with the 
+[Spectator Nodemetrics](https://github.com/Netflix-Skunkworks/spectator-js-nodejsmetrics)
+module.
 
 ## Instrumenting Code
 
