@@ -34,6 +34,30 @@ class Gauge {
   }
 
   /**
+   * Get the current value.
+   *
+   * @deprecated Use get() instead.
+   *
+   * @return {number} The current value for this gauge.
+   */
+  value() {
+    return this.value_;
+  }
+
+  /**
+   *
+   * Set the current gauge value to the specified number.
+   *
+   * @deprecated Use set instead.
+   *
+   * @param {number} value Number to be used when reporting the value to atlas.
+   * @return {undefined}
+   */
+  update(value) {
+    this.value_ = value;
+  }
+
+  /**
    * Get the measurements for this gauge.
    *
    * @return {Object[]} Either an empty array or an array with
