@@ -32,4 +32,14 @@ describe('Gauges', () => {
     assert.lengthOf(gauge.measure(), 0); // resets
     assert.deepEqual([{id: id.withStat('gauge'), v: 2}], ms);
   });
+
+  it('should honor deprecated methods', () => {
+    const id = new MeterId('g');
+    const g = new Gauge(id);
+    g.update(42);
+    assert.equal(g.value(), 42);
+
+    g.update(21);
+    assert.equal(g.value(), 21);
+  });
 });

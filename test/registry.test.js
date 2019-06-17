@@ -335,4 +335,18 @@ describe('AtlasRegistry', () => {
     assert.equal(called, expectedBatches);
     assert.equal(sent, numCounters);
   });
+
+  it('should honor backwards compat aliases', () => {
+    const r = new AtlasRegistry({});
+    const ds = r.distributionSummary('name');
+    const ds2 = r.distSummary('name');
+
+    ds.record(100);
+    assert.equal(ds2.totalAmount, 100);
+
+    const c = r.counter('ctr');
+    c.increment(1.1);
+    const d = r.dcounter('ctr');
+    assert(d.count, 1.1);
+  });
 });

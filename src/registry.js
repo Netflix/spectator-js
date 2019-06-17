@@ -335,6 +335,21 @@ class AtlasRegistry {
   }
 
   /**
+   * Measures the rate of some activity. A counter is for continuously incrementing sources like
+   * the number of requests that are coming into a server.
+   *
+   * @deprecated Use counter instead. This is kept for backwards compatibility only
+   *
+   * @param {*} nameOrId either a string with a name, or a base id
+   * @param {*} tags an object or Map with tags
+   * @return {Counter} A counter that is registered with this registry.
+   */
+  dcounter(nameOrId, tags) {
+    const meterId = this._getId(nameOrId, tags);
+    return this._newMeter(meterId, Counter);
+  }
+
+  /**
    * Measures the rate and variation in amount for some activity. For example, it could be used to
    * get insight into the variation in response sizes for requests to a server.
    *
@@ -343,6 +358,21 @@ class AtlasRegistry {
    * @return {DistributionSummary} A distribution summary that is registered with this registry.
    */
   distributionSummary(nameOrId, tags) {
+    const meterId = this._getId(nameOrId, tags);
+    return this._newMeter(meterId, DistributionSummary);
+  }
+
+  /**
+   * Measures the rate and variation in amount for some activity. For example, it could be used to
+   * get insight into the variation in response sizes for requests to a server.
+   *
+   * @deprecated Use distributionSummary instead. This is kept for backwards compatibility only
+   *
+   * @param {*} nameOrId either a string with a name, or a base id
+   * @param {*} tags an object or Map with tags
+   * @return {DistributionSummary} A distribution summary that is registered with this registry.
+   */
+  distSummary(nameOrId, tags) {
     const meterId = this._getId(nameOrId, tags);
     return this._newMeter(meterId, DistributionSummary);
   }
