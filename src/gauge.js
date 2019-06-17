@@ -46,9 +46,9 @@ class Gauge {
 
   /**
    *
-   * @deprecated Use set instead.
-   *
    * Set the current gauge value to the specified number.
+   *
+   * @deprecated Use set instead.
    *
    * @param {number} value Number to be used when reporting the value to atlas.
    * @return {undefined}
