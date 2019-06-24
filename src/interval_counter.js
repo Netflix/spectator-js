@@ -21,6 +21,11 @@ class IntervalCounter {
     this.counter.add(delta);
   }
 
+  increment(maybeDelta) {
+    let delta = maybeDelta ? maybeDelta : 1;
+    this.add(delta);
+  }
+
   get count() {
     return this.counter.count;
   }

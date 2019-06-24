@@ -40,6 +40,16 @@ describe('IntervalCounter', () => {
     }, 3);
   });
 
+  it('provides increment', () => {
+    const r = new Registry({});
+    const counter = IntervalCounter.get(r, r.createId('ic'));
+    counter.increment();
+    assert.equal(counter.count, 1);
+
+    counter.increment(1.1);
+    assert.equal(counter.count, 2.1);
+  });
+
   it('multiple calls to get', (done) => {
     const r = new Registry({gaugePollingFrequency: 1, strictMode: true});
     r.hrtime = (time) => {
