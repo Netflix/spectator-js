@@ -308,32 +308,77 @@ describe('AtlasRegistry', () => {
     assert.equal(called, 3);
   });
 
-  it('should batch measurements', () => {
+  it('should batch measurements', (done) => {
     const config = {};
     config.uri = 'http://localhost:8080/publish';
     config.batchSize = 2;
 
     const r = new AtlasRegistry(config);
 
-    let called = 0;
     let sent = 0;
-    r.publisher._sendMeasurements = (ms) => {
+    let called = 0;
+
+    r.publisher._sendMeasurements = (ms, cb) => {
       sent += ms.length;
       called++;
       assert.isAtMost(ms.length, config.batchSize);
+      cb();
     };
 
     const numCounters = 12;
-    for (let i = 0; i < numCounters; ++i) {
-      r.counter("foo" + i).increment();
-    }
-    AtlasRegistry._publish(r);
     let expectedBatches = Math.floor(numCounters / config.batchSize);
+
     if (numCounters % config.batchSize !== 0) {
       expectedBatches++;
     }
-    assert.equal(called, expectedBatches);
-    assert.equal(sent, numCounters);
+
+    for (let i = 0; i < numCounters; ++i) {
+      r.counter('foo' + i).increment();
+    }
+
+    AtlasRegistry._publish(r, function(err) {
+      if (err) {
+        return done(err);
+      }
+
+      assert.equal(called, expectedBatches);
+      assert.equal(sent, numCounters);
+      return done();
+    });
+  });
+
+  it('should propagate error from async calls back to stop', (done) => {
+    const config = {};
+    config.uri = 'http://localhost:8080/publish';
+    config.batchSize = 2;
+
+    const r = new AtlasRegistry(config);
+    let called = 0;
+    let sent = 0;
+
+    r.publisher._sendMeasurements = (ms, cb) => {
+      if (called > 2) {
+        return cb(new Error('expected'));
+      }
+      sent += ms.length;
+      called++;
+      return cb();
+    };
+
+    const numCounters = 10;
+    for (let i = 0; i < numCounters; ++i) {
+      r.counter('foo' + i).increment();
+    }
+
+    r.stop(function(err) {
+      if (!err) {
+        return done(new Error('this test expects an error'));
+      }
+
+      assert.equal(called, 3);
+      assert.equal(sent, 6);
+      return done();
+    });
   });
 
   it('should honor backwards compat aliases', () => {

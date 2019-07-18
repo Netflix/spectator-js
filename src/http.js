@@ -1,75 +1,73 @@
 'use strict';
 
-const http = require('http');
-const URL = require('url');
+const needle = require('needle');
 
-const headers = {
-  'Content-Type': 'application/json'
-};
 class HttpClient {
+  /**
+   * @constructor
+   * @param {AtlasRegistry} registry spectator registry instance
+   */
   constructor(registry) {
     this.registry = registry;
+
+    this.baseId = registry.createId('http.req.complete', {
+      method: 'POST',
+      mode: 'http-client',
+      client: 'spectator-js'
+    });
   }
 
-  postJson(endpoint, payload) {
+  /**
+   * @param {string} endpoint spectator uri
+   * @param {object} payload batch of metrics
+   * @param {function(e: Error, res: any): void} [cb = ()=> {}] callback function
+   * @return {void}
+   */
+  postJson(endpoint, payload, cb = () => {}) {
     const log = this.registry.logger;
-    const url = URL.parse(endpoint);
-
-    const baseId = this.registry.createId('http.req.complete',
-      {method: 'POST', mode: 'http-client', client: 'spectator-js'});
     const jsonStr = JSON.stringify(payload);
-    headers['Content-length'] = Buffer.byteLength(jsonStr);
+    const timeout = this.registry.config.timeout || 1000;
+
     const options = {
-      headers: headers,
-      hostname: url.hostname,
-      port: url.port,
-      path: url.path,
-      method: 'POST',
-      protocol: url.protocol
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-length': Buffer.byteLength(jsonStr)
+      },
+      open_timeout: timeout,
+      response_timeout: timeout
     };
 
     const registry = this.registry;
     const start = registry.hrtime();
-    const request = http.request(options, (res) => {
-      let data = '';
-      res.setEncoding('utf8');
-      res.on('data', (chunk) => {
-        data += chunk;
-      });
-      res.on('end', () => {
-        const statusFamily = `${Math.floor(res.statusCode / 100)}xx`;
-        const timerId = baseId.withTags({statusCode: res.statusCode, status: statusFamily});
-        registry.timer(timerId).record(registry.hrtime(start));
 
-        if (statusFamily !== '2xx') {
-          log.error(`POST to ${endpoint}: ${res.statusCode} - ${data}`);
+    needle.post(endpoint, jsonStr, options, (err, res) => {
+      if (err) {
+        let error = err.code;
+
+        if (error === 'ECONNRESET') {
+          error = 'timeout';
+          log.error(`Timeout POSTing metrics to ${endpoint}`);
+        } else {
+          log.error(`problem with request: ${err.message}`);
         }
-      });
-    });
+        registry.timer(this.baseId, {
+          statusCode: error,
+          status: error
+        }).record(registry.hrtime(start));
 
-    request.on('error', (e) => {
-      let error = e.code;
-
-      if (error === 'ECONNRESET') {
-        error = 'timeout';
-      } else {
-        // our timeout handler handles logging the error, so no need to duplicate
-        // the error message
-        log.error(`problem with request: ${e.message}`);
+        return cb(err);
       }
-      registry.timer(baseId, {statusCode: error, status: error})
-        .record(registry.hrtime(start));
-    });
 
-    const timeout = this.registry.config.timeout || 1000;
-    request.setTimeout(timeout, () => {
-      request.abort();
-      const elapsed = registry.hrtime(start);
-      const seconds = elapsed[0] + elapsed[1] / 1e9;
-      log.error(`Timeout POSTing to ${endpoint} after ${seconds.toFixed(2)}s`);
+      const data = res.body;
+      const statusFamily = `${Math.floor(res.statusCode / 100)}xx`;
+      const timerId = this.baseId.withTags({statusCode: res.statusCode, status: statusFamily});
+      registry.timer(timerId).record(registry.hrtime(start));
+
+      if (statusFamily !== '2xx') {
+        log.error(`POST to ${endpoint}: ${res.statusCode} - ${data}`);
+      }
+      return cb(null, res);
     });
-    request.write(jsonStr);
-    request.end();
   }
 }
 

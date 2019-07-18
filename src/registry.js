@@ -1,126 +1,16 @@
 'use strict';
 
+const Publisher = require('./publisher');
 const MeterId = require('./meter_id');
 const Counter = require('./counter');
 const Gauge = require('./gauge');
 const Timer = require('./timer');
 const DistributionSummary = require('./dist_summary');
-const HttpClient = require('./http');
 const getLoggers = require('./logger');
-
-// internal class used to publish measurements to an aggregator service
-class Publisher {
-  constructor(registry) {
-    this.registry = registry;
-    this.http = new HttpClient(registry);
-  }
-
-  // Build a string table from the list of measurements
-  // Unique words are identified, and assigned a number starting from 0 based
-  // on their lexicographical order
-  buildStringTable(measurements) {
-    let commonTags = this.registry.commonTags;
-    let table = {};
-
-    for (let [key, value] of commonTags) {
-      table[key] = 0;
-      table[value] = 0;
-    }
-    table.name = 0;
-
-    for (let m of measurements) {
-      table[m.id.name] = 0;
-
-      for (let [k, v] of m.id.tags) {
-        table[k] = 0;
-        table[v] = 0;
-      }
-    }
-    let keys = Object.keys(table);
-    keys.sort();
-    keys.forEach((v, idx) => {
-      table[v] = idx;
-    });
-    return table;
-  }
-
-  appendMeasurement(payload, table, measure) {
-    const op = opForMeasurement(measure);
-    const commonTags = this.registry.commonTags;
-    const tags = measure.id.tags;
-    const len = tags.size + 1 + commonTags.size;
-    payload.push(len);
-
-    for (let [k, v] of commonTags) {
-      payload.push(table[k]);
-      payload.push(table[v]);
-    }
-
-    for (let [k, v] of tags) {
-      payload.push(table[k]);
-      payload.push(table[v]);
-    }
-    payload.push(table.name);
-    payload.push(table[measure.id.name]);
-    payload.push(op);
-    payload.push(measure.v);
-  }
-
-  payloadForMeasurements(measurements) {
-    const table = this.buildStringTable(measurements);
-    const strings = Object.keys(table);
-    strings.sort();
-    const payload = strings;
-    payload.unshift(Object.keys(table).length);
-
-    for (let m of measurements) {
-      this.appendMeasurement(payload, table, m);
-    }
-    return payload;
-  }
-
-  registryMeasurements() {
-    return this.registry.measurements().filter(shouldSend);
-  }
-
-  _sendMeasurements(measurements) {
-    const log = this.registry.logger;
-    const uri = this.registry.config.uri;
-    log.debug('Sending ' + measurements.length + ' measurements to ' + uri);
-    const payload = this.payloadForMeasurements(measurements);
-    this.http.postJson(uri, payload);
-    if (typeof log.isLevelEnabled === 'function' && log.isLevelEnabled('trace')) {
-      for (const m of measurements) {
-        log.trace(`Sent: ${m.id.key}=${m.v}`);
-      }
-    }
-  }
-
-  sendMetricsNow() {
-    const batchSize = this.registry.config.batchSize;
-    const measurements = this.registryMeasurements();
-    const log = this.registry.logger;
-    const uri = this.registry.config.uri;
-    const enabled = this.registry.config.isEnabled();
-
-    if (!uri || !enabled) {
-      return;
-    }
-
-    if (measurements.length === 0) {
-      log.debug('No measurements to send');
-    } else {
-      for (let i = 0; i < measurements.length; i += batchSize) {
-        const batch = measurements.slice(i, i + batchSize);
-        this._sendMeasurements(batch);
-      }
-    }
-  }
-}
-
 
 /**
  * Registry to manage a set of meters.
+ * @class AtlasRegistry
  */
 class AtlasRegistry {
   /**
@@ -140,6 +30,8 @@ class AtlasRegistry {
    *   * gaugePollingFrequency: milliseconds at which to poll meters. Default 10000.
    *
    *   * frequency: milliseconds at which we send updates to our aggregator. Default 5000.
+   *
+   *   * publisher: optional instance of Publisher.
    *
    *   @param {Object} config Configuration settings. See above.
    */
@@ -161,7 +53,7 @@ class AtlasRegistry {
     this.metersMap = new Map();
     this.state = new Map();
     this.started = false;
-    this.publisher = new Publisher(this);
+    this.publisher = this.config.publisher || new Publisher(this);
     this.logger = this.config.logger || getLoggers(this.config.logLevel);
     let commonTags = this.config.commonTags;
 
@@ -218,7 +110,7 @@ class AtlasRegistry {
    * @param {string} registeredType type already in the registry
    * @param {string} newType attempted type to be registered
    * @param {Object} requestedMeter the meter that caused the error
-   * @return {undefined}
+   * @return {void}
    */
   throwTypeError(id, registeredType, newType, requestedMeter) {
     let article;
@@ -265,7 +157,7 @@ class AtlasRegistry {
 
   /**
    * Start collecting and sending metrics to an atlas-aggregator service.
-   * @return {undefined}
+   * @return {void}
    */
   start() {
     const c = this.config;
@@ -405,13 +297,23 @@ class AtlasRegistry {
   }
 
 
-  // publish metrics now
-  static _publish(self) {
-    self.publisher.sendMetricsNow();
+  /**
+   * publish metrics now
+   * @static
+   * @private
+   * @param {AtlasRegistry} self registry instance
+   * @param {function(e: Error, res: any): void} [cb = ()=> {}] callback function
+   * @return {void}
+   */
+  static _publish(self, cb) {
+    self.publisher.sendMetricsNow(cb);
   }
 
-  // removes the previous state
-  // ensuring that any registered intervals are cleared
+  /**
+   * removes the previous state ensuring that any registered intervals are cleared
+   * @private
+   * @return {void}
+   */
   _clearState() {
     for (let v of this.state.values()) {
       if (v.interval) {
@@ -426,16 +328,17 @@ class AtlasRegistry {
    * Stop background activity. This includes sending metrics to an atlas
    * aggregator service and polling of meters.
    *
+   * @param {function(e: Error, res: any): void} [cb = ()=> {}] callback function
    * @return {undefined}
    */
-  stop() {
+  stop(cb) {
     const log = this.logger;
 
     log.info('Stopping spectator registry');
     this.started = false;
     clearInterval(this.startId);
     this.startId = undefined;
-    AtlasRegistry._publish(this);
+    AtlasRegistry._publish(this, cb);
 
     this._clearState();
   }
@@ -502,33 +405,5 @@ class AtlasRegistry {
   }
 }
 
-
-const ADD_OP = 0;
-const MAX_OP = 10;
-const counterStats = {
-  count: 1,
-  totalAmount: 1,
-  totalTime: 1,
-  totalOfSquares: 1,
-  percentile: 1
-};
-
-function opForMeasurement(measure) {
-  const stat = measure.id.tags.get('statistic') || '';
-  if (counterStats[stat]) {
-    return ADD_OP;
-  }
-  return MAX_OP;
-}
-
-function shouldSend(measure) {
-  const op = opForMeasurement(measure);
-
-  if (op === ADD_OP) {
-    return measure.v > 0;
-  }
-
-  return !Number.isNaN(measure.v);
-}
 
 module.exports = AtlasRegistry;
