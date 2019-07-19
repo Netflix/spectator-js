@@ -8,6 +8,9 @@
     "type": "git",
     "url": "ssh://git@github.com:Netflix/spectator-js.git"
   },
+  "engines": {
+    "node": ">6.4.0"
+  },
   "license": "Apache-2.0",
   "devDependencies": {
     "body-parser": "^1.18.3",
@@ -27,5 +30,9 @@
   },
   "files": [
     "src/*"
-  ]
+  ],
+  "dependencies": {
+    "async": "^3.1.0",
+    "needle": "^2.4.0"
+  }
 }
