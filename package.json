@@ -1,6 +1,6 @@
 {
   "name": "nflx-spectator",
-  "version": "0.0.10",
+  "version": "0.1.0",
   "author": "Daniel Muino <dmuino@gmail.com>",
   "main": "src/index.js",
   "homepage": "https://github.org/Netflix/spectator-js",
