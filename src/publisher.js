@@ -145,22 +145,23 @@ class Publisher {
     const enabled = this.registry.config.isEnabled();
 
     if (!uri || !enabled) {
-      return;
+      log.warn(`Unable to send metrics to ${uri} (enabled=${enabled})`);
+      return cb();
     }
 
     if (measurements.length === 0) {
       log.debug('No measurements to send');
-    } else {
-
-      let batches = [];
-      for (let i = 0; i < measurements.length; i += batchSize) {
-        batches.push(measurements.slice(i, i + batchSize));
-      }
-
-      async.map(batches, this._sendMeasurements.bind(this), function(err) {
-        cb(err);
-      });
+      return cb();
     }
+
+    let batches = [];
+    for (let i = 0; i < measurements.length; i += batchSize) {
+      batches.push(measurements.slice(i, i + batchSize));
+    }
+
+    return async.map(batches, this._sendMeasurements.bind(this), function(err) {
+      cb(err);
+    });
   }
 }
 

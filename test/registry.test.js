@@ -308,6 +308,34 @@ describe('AtlasRegistry', () => {
     assert.equal(called, 3);
   });
 
+  it('should call callback if not enabled', (done) => {
+    const config = {};
+    config.uri = 'http://localhost:8080/publish';
+
+    let enabled = true;
+    config.isEnabled = () => enabled;
+
+    const r = new AtlasRegistry(config);
+
+    r.stop(function() {
+      return done();
+    });
+  });
+
+  it('should call callback if there is nothing to send', (done) => {
+    const config = {};
+    config.uri = 'http://localhost:8080/publish';
+
+    let enabled = false;
+    config.isEnabled = () => enabled;
+
+    const r = new AtlasRegistry(config);
+
+    r.stop(function() {
+      return done();
+    });
+  });
+
   it('should batch measurements', (done) => {
     const config = {};
     config.uri = 'http://localhost:8080/publish';
