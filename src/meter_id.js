@@ -3,15 +3,14 @@
 class MeterId {
   constructor(name, tags) {
     this.name = name;
-    let t = new Map();
 
     if (!tags) {
-      this.tags = t;
+      this.tags = new Map();
     } else if (tags instanceof Map) {
       this.tags = tags;
     } else {
       // assume object
-      this.tags = t;
+      this.tags = new Map();
 
       for (let key of Object.keys(tags)) {
         this.tags.set(key, tags[key]);

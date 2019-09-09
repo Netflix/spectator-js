@@ -77,19 +77,18 @@ class AtlasRegistry {
    * will throw if the types are not compatible.
    *
    * @param {Object} registeredMeter the previously registered meter
-   * @param {Object} newMeter meter we are currently trying to register
+   * @param {Object} expectedClass class of meter we are currently trying to register
    * @return {boolean} whether the types are compatible
    * @private
    */
-  _hasCorrectType(registeredMeter, newMeter) {
-    const actualClass = registeredMeter.constructor.name;
-    const expectedClass = newMeter.constructor.name;
-    let msg;
-    if (actualClass !== expectedClass) {
+  _hasCorrectType(registeredMeter, expectedClass) {
+    if (!(registeredMeter instanceof expectedClass)) {
       const idStr = registeredMeter.id.key;
-      msg = `Expecting a different type when creating a ${expectedClass} for id=${idStr}. ` +
-        `Found ${actualClass} already registered with the same id when ` +
-        `${expectedClass} was expected`;
+      const className = expectedClass.name;
+      const msg = `Expecting a different type when creating a ${className} for id=${idStr}. ` +
+        `Found ${registeredMeter.constructor.name} already registered with the same id when ` +
+        `${className} was expected`;
+
       if (this.config.strictMode) {
         throw new Error(msg);
       } else {
@@ -182,19 +181,21 @@ class AtlasRegistry {
    */
   _newMeter(id, Class) {
     const key = id.key;
-    const meter = new Class(id);
 
     const m = this.metersMap.get(key);
-    if (m) {
-      if (this._hasCorrectType(m, meter)) {
-        return m;
-      }
-      // wrong type registered, return a dummy meter not associated
-      // with the registry (if running under strictMode _hasCorrectType throws)
-      return meter;
+    // if running under strictMode _hasCorrectType throws
+    if (m && this._hasCorrectType(m, Class)) {
+      return m;
     }
 
-    this.metersMap.set(key, meter);
+    const meter = new Class(id);
+
+    // if wrong type registered, return a dummy meter not associated with the registry
+    if (!m) {
+      // otherwise add it to the registry meter map
+      this.metersMap.set(key, meter);
+    }
+
     return meter;
   }
 
@@ -207,7 +208,7 @@ class AtlasRegistry {
    * @private
    */
   _getId(nameOrId, tags) {
-    if (nameOrId.constructor.name === 'MeterId') {
+    if (nameOrId instanceof MeterId) {
       return nameOrId.withTags(tags);
     }
     return this.createId(nameOrId, tags);
