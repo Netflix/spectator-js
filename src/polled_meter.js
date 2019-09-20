@@ -64,80 +64,80 @@ class ValueState {
   }
 }
 
-class PolledMeter {
-  static using(registry) {
-    class Builder {
-      constructor(r) {
-        this.registry = r;
-      }
+class PolledMeterBuilder {
+  constructor(r) {
+    this.registry = r;
+  }
 
-      withId(id) {
-        this.id = id;
-        return this;
-      }
+  withId(id) {
+    this.id = id;
+    return this;
+  }
 
-      withName(name) {
-        this.name = name;
-        return this;
-      }
+  withName(name) {
+    this.name = name;
+    return this;
+  }
 
-      withTags(tags) {
-        this.tags = tags;
-        return this;
-      }
+  withTags(tags) {
+    this.tags = tags;
+    return this;
+  }
 
-      monitorValue(fun) {
-        let id;
-        const r = this.registry;
-        if (this.id) {
-          id = this.id;
-        } else {
-          id = r.createId(this.name, this.tags);
-        }
-        const gauge = r.gauge(id);
-        const state = r.state;
-        let c = state.get(id.key);
-        if (!c) {
-          c = new ValueState(gauge);
-          state.set(id.key, c);
-        } else {
-          if (c.constructor.name !== 'ValueState') {
-            registry.throwTypeError(id, c.constructor.name, 'ValueState', 'PolledMeter');
-          }
-        }
-        if (c.constructor.name === 'ValueState') {
-          c.add(fun);
-          c.schedule(r);
-        }
-      }
-
-      monitorMonotonicNumber(fun) {
-        let id;
-        const r = this.registry;
-        if (this.id) {
-          id = this.id;
-        } else {
-          id = r.createId(this.name, this.tags);
-        }
-        const counter = r.counter(id);
-        const state = r.state;
-        let c = state.get(id.key);
-        if (!c) {
-          c = new CounterState(counter);
-          state.set(id.key, c);
-        } else {
-          if (c.constructor.name !== 'CounterState') {
-            registry.throwTypeError(id, c.constructor.name, 'ValueState', 'PolledMeter');
-          }
-        }
-        if (c.constructor.name === 'CounterState') {
-          c.add(fun);
-          c.schedule(r);
-        }
+  monitorValue(fun) {
+    let id;
+    const r = this.registry;
+    if (this.id) {
+      id = this.id;
+    } else {
+      id = r.createId(this.name, this.tags);
+    }
+    const gauge = r.gauge(id);
+    const state = r.state;
+    let c = state.get(id.key);
+    if (!c) {
+      c = new ValueState(gauge);
+      state.set(id.key, c);
+    } else {
+      if (c.constructor.name !== 'ValueState') {
+        r.throwTypeError(id, c.constructor.name, 'ValueState', 'PolledMeter');
       }
     }
+    if (c.constructor.name === 'ValueState') {
+      c.add(fun);
+      c.schedule(r);
+    }
+  }
 
-    return new Builder(registry);
+  monitorMonotonicNumber(fun) {
+    let id;
+    const r = this.registry;
+    if (this.id) {
+      id = this.id;
+    } else {
+      id = r.createId(this.name, this.tags);
+    }
+    const counter = r.counter(id);
+    const state = r.state;
+    let c = state.get(id.key);
+    if (!c) {
+      c = new CounterState(counter);
+      state.set(id.key, c);
+    } else {
+      if (c.constructor.name !== 'CounterState') {
+        r.throwTypeError(id, c.constructor.name, 'ValueState', 'PolledMeter');
+      }
+    }
+    if (c.constructor.name === 'CounterState') {
+      c.add(fun);
+      c.schedule(r);
+    }
+  }
+}
+
+class PolledMeter {
+  static using(registry) {
+    return new PolledMeterBuilder(registry);
   }
 }
 

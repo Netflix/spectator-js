@@ -13,6 +13,56 @@ for (let i = 0; i < percentiles.length; ++i) {
   percentiles[i] = 'D' + hex;
 }
 
+class PercentileDistSummaryBuilder {
+  constructor(registry) {
+    this.registry = registry;
+  }
+  withId(id) {
+    this.id = id;
+    return this;
+  }
+  withName(name) {
+    this.name = name;
+    return this;
+  }
+  withTags(tags) {
+    this.tags = tags;
+    return this;
+  }
+
+  /**
+    * Sets the range for this summary. The range is should be the SLA boundary or
+    * failure point for the activity. Explicitly setting the threshold allows us to optimize
+    * for the important range of values and reduce the overhead associated with tracking the
+    * data distribution.
+    *
+    * For example, suppose you are making a client call and the max payload size is 8mb. Setting
+    * the threshold to 8mb will restrict the possible set of buckets used to those approaching
+    * the boundary. So we can still detect if it is nearing failure, but percentiles
+    * that are further away from the range may be inflated compared to the actual value.
+    *
+    * @param {number} min  Amount indicating the minimum allowed value for this summary.
+    * @param {number} max  Amount indicating the maximum allowed value for this summary.
+    * @return {Builder}    This builder instance to allow chaining of operations.
+    */
+  withRange(min, max) {
+    this.min = min;
+    this.max = max;
+    return this;
+  }
+
+  build() {
+    let id;
+    if (this.id) {
+      id = this.id;
+    } else {
+      id = this.registry.createId(this.name, this.tags);
+    }
+    /* eslint no-use-before-define: ["error", { "classes": false }] */
+    return new PercentileDistributionSummary(this.registry, id, this.min, this.max);
+  }
+}
+
 /**
  * Distribution summary that buckets the counts to allow for estimating percentiles. This
  * distribution summary type will track the data distribution for the summary by maintaining
@@ -53,55 +103,7 @@ class PercentileDistributionSummary {
   }
 
   static get Builder() {
-    class Builder {
-      constructor(registry) {
-        this.registry = registry;
-      }
-      withId(id) {
-        this.id = id;
-        return this;
-      }
-      withName(name) {
-        this.name = name;
-        return this;
-      }
-      withTags(tags) {
-        this.tags = tags;
-        return this;
-      }
-
-      /**
-       * Sets the range for this summary. The range is should be the SLA boundary or
-       * failure point for the activity. Explicitly setting the threshold allows us to optimize
-       * for the important range of values and reduce the overhead associated with tracking the
-       * data distribution.
-       *
-       * For example, suppose you are making a client call and the max payload size is 8mb. Setting
-       * the threshold to 8mb will restrict the possible set of buckets used to those approaching
-       * the boundary. So we can still detect if it is nearing failure, but percentiles
-       * that are further away from the range may be inflated compared to the actual value.
-       *
-       * @param {number} min  Amount indicating the minimum allowed value for this summary.
-       * @param {number} max  Amount indicating the maximum allowed value for this summary.
-       * @return {Builder}    This builder instance to allow chaining of operations.
-       */
-      withRange(min, max) {
-        this.min = min;
-        this.max = max;
-        return this;
-      }
-
-      build() {
-        let id;
-        if (this.id) {
-          id = this.id;
-        } else {
-          id = this.registry.createId(this.name, this.tags);
-        }
-        return new PercentileDistributionSummary(this.registry, id, this.min, this.max);
-      }
-    }
-    return Builder;
+    return PercentileDistSummaryBuilder;
   }
 
   _counterFor(i) {
