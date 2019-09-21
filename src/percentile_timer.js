@@ -13,6 +13,51 @@ for (let i = 0; i < percentiles.length; ++i) {
   percentiles[i] = 'T' + hex;
 }
 
+class PercentileTimerBuilder {
+  constructor(registry) {
+    this.registry = registry;
+    this.min = 10 * 1e6; // 10 ms
+    this.max = 60 * 1e9; // 1 min
+  }
+  withId(id) {
+    this.id = id;
+    return this;
+  }
+  withName(name) {
+    this.name = name;
+    return this;
+  }
+  withTags(tags) {
+    this.tags = tags;
+    return this;
+  }
+  withRangeSeconds(min, max) {
+    this.min = min * 1e9;
+    this.max = max * 1e9;
+    return this;
+  }
+  withRangeMilliseconds(min, max) {
+    this.min = min * 1e6;
+    this.max = max * 1e6;
+    return this;
+  }
+  withRangeNanoseconds(min, max) {
+    this.min = min;
+    this.max = max;
+    return this;
+  }
+  build() {
+    let id;
+    if (this.id) {
+      id = this.id;
+    } else {
+      id = this.registry.createId(this.name, this.tags);
+    }
+    /* eslint no-use-before-define: ["error", { "classes": false }] */
+    return new PercentileTimer(this.registry, id, this.min, this.max);
+  }
+}
+
 /**
  * Timer that buckets the counts to allow for estimating percentiles. This timer type will track
  * the data distribution for the timer by maintaining a set of counters. The distribution
@@ -55,50 +100,7 @@ class PercentileTimer {
   }
 
   static get Builder() {
-    class Builder {
-      constructor(registry) {
-        this.registry = registry;
-        this.min = 10 * 1e6; // 10 ms
-        this.max = 60 * 1e9; // 1 min
-      }
-      withId(id) {
-        this.id = id;
-        return this;
-      }
-      withName(name) {
-        this.name = name;
-        return this;
-      }
-      withTags(tags) {
-        this.tags = tags;
-        return this;
-      }
-      withRangeSeconds(min, max) {
-        this.min = min * 1e9;
-        this.max = max * 1e9;
-        return this;
-      }
-      withRangeMilliseconds(min, max) {
-        this.min = min * 1e6;
-        this.max = max * 1e6;
-        return this;
-      }
-      withRangeNanoseconds(min, max) {
-        this.min = min;
-        this.max = max;
-        return this;
-      }
-      build() {
-        let id;
-        if (this.id) {
-          id = this.id;
-        } else {
-          id = this.registry.createId(this.name, this.tags);
-        }
-        return new PercentileTimer(this.registry, id, this.min, this.max);
-      }
-    }
-    return Builder;
+    return PercentileTimerBuilder;
   }
 
   _counterFor(i) {
