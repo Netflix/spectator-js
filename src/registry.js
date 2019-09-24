@@ -355,7 +355,7 @@ class AtlasRegistry {
     let a = [];
 
     for (let meter of this.metersMap.values()) {
-      a = a.concat(meter.measure());
+      Array.prototype.push.apply(a, meter.measure());
     }
     return a;
   }
