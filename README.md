@@ -25,7 +25,7 @@ module.
 
 const spectator = require('nflx-spectator');
 
-// Netflix applications can use the nflx-spectator-config node module available
+// Netflix applications can use the nflx-spectator-jsconf node module available
 // internally through artifactory to generate the config required by nflx-spectator
 function getConfig() {
   return {
