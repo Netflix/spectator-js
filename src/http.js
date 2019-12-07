@@ -1,6 +1,7 @@
 'use strict';
 
 const needle = require('needle');
+const LogEntry = require('./log_entry');
 
 class HttpClient {
   /**
@@ -27,6 +28,8 @@ class HttpClient {
     const log = this.registry.logger;
     const jsonStr = JSON.stringify(payload);
     const timeout = this.registry.config.timeout || 1000;
+    const logEntry = new LogEntry(this.registry, 'POST', endpoint);
+    const MAX_ATTEMPTS = 3;
 
     const options = {
       headers: {
@@ -37,37 +40,51 @@ class HttpClient {
       response_timeout: timeout
     };
 
-    const registry = this.registry;
-    const start = registry.hrtime();
-
-    needle.post(endpoint, jsonStr, options, (err, res) => {
+    let attemptNumber = 0;
+    const metricsHandler = (err, res) => {
       if (err) {
         let error = err.code;
 
         if (error === 'ECONNRESET') {
-          error = 'timeout';
+          logEntry.setError('timeout');
           log.error(`Timeout POSTing metrics to ${endpoint}`);
         } else {
           log.error(`problem with request: ${err.message}`);
+          logEntry.setError(err.code.toString());
         }
-        registry.timer(this.baseId, {
-          statusCode: error,
-          status: error
-        }).record(registry.hrtime(start));
+        logEntry.setAttempt(attemptNumber, true);
+        logEntry.log();
 
         return cb(err);
       }
 
-      const data = res.body;
-      const statusFamily = `${Math.floor(res.statusCode / 100)}xx`;
-      const timerId = this.baseId.withTags({statusCode: res.statusCode, status: statusFamily});
-      registry.timer(timerId).record(registry.hrtime(start));
+      logEntry.setStatusCode(res.statusCode);
+      const httpOk = res.statusCode >= 200 && res.statusCode < 300;
+      if (httpOk) {
+        logEntry.setSuccess();
+      } else {
+        logEntry.setError('http_error');
+      }
 
-      if (statusFamily !== '2xx') {
+      const willRetry = res.statusCode === 503 && attemptNumber < MAX_ATTEMPTS;
+
+      logEntry.setAttempt(attemptNumber, !willRetry);
+      logEntry.log();
+
+      const data = res.body;
+      if (!httpOk) {
         log.error(`POST to ${endpoint}: ${res.statusCode} - ${data}`);
       }
+
+      if (willRetry) {
+        attemptNumber++;
+        return needle.post(endpoint, jsonStr, options, metricsHandler);
+      }
+
       return cb(null, res);
-    });
+    };
+
+    needle.post(endpoint, jsonStr, options, metricsHandler);
   }
 }
 
