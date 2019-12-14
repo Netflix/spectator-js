@@ -6,6 +6,10 @@ const PolledMeter = require('../src/polled_meter');
 const Registry = require('../src/registry');
 
 describe('PolledMeter', () => {
+  function myMeters(r) {
+    return r.meters().filter(m => !m.id.name.startsWith('spectator.'));
+  }
+
   it('monitorValue using name/tags', (done) => {
     const r = new Registry({gaugePollingFrequency: 1, strictMode: true});
     let i = 1;
@@ -13,7 +17,7 @@ describe('PolledMeter', () => {
       {foo: 'bar'}).monitorValue(() => i + 1);
 
     setTimeout(() => {
-      const ms = r.meters();
+      const ms = myMeters(r);
       assert.lengthOf(ms, 1);
       assert.equal(ms[0].get(), 2);
       r.stop();
@@ -29,7 +33,7 @@ describe('PolledMeter', () => {
     x = 42;
 
     setTimeout(() => {
-      const ms = r.meters();
+      const ms = myMeters(r);
       assert.lengthOf(ms, 1);
       assert.equal(ms[0].get(), 42);
       r.stop();
@@ -46,7 +50,7 @@ describe('PolledMeter', () => {
     x = 42;
 
     setTimeout(() => {
-      const ms = r.meters();
+      const ms = myMeters(r);
       assert.lengthOf(ms, 1);
       assert.equal(ms[0].get(), 42 + 43);
       r.stop();
@@ -67,7 +71,7 @@ describe('PolledMeter', () => {
     y = 201;
 
     setTimeout(() => {
-      const ms = r.meters();
+      const ms = myMeters(r);
       assert.lengthOf(ms, 1);
       assert.equal(ms[0].count, 43);
       r.stop();
