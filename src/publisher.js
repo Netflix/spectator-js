@@ -19,6 +19,13 @@ class Publisher {
    */
   constructor(registry) {
     this.registry = registry;
+    this.sentMetrics = registry.counter('spectator.measurements', {id: 'sent'});
+    this.invalidMetrics = registry.counter('spectator.measurements',
+      {id: 'dropped', error: 'validation'});
+    this.droppedHttp = registry.counter('spectator.measurements',
+      {id: 'dropped', error: 'http-error'});
+    this.droppedOther = registry.counter('spectator.measurements',
+      {id: 'dropped', error: 'other'});
     this.http = new HttpClient(registry);
   }
 
@@ -113,7 +120,7 @@ class Publisher {
   }
 
   /**
-   * makes http request to spectator and sends accumulated measurements
+   * makes http request to atlas-aggregator with accumulated measurements
    * @private
    * @param {object[]} measurements measurements to be published
    * @param {function(e: Error, res: any): void} [cb = ()=> {}] callback function
@@ -122,9 +129,43 @@ class Publisher {
   _sendMeasurements(measurements, cb = () => {}) {
     const log = this.registry.logger;
     const uri = this.registry.config.uri;
-    log.debug('Sending ' + measurements.length + ' measurements to ' + uri);
+    log.debug(`Sending ${measurements.length} measurements to ${uri}`);
     const payload = this.payloadForMeasurements(measurements);
-    this.http.postJson(uri, payload, cb);
+    const metricsCallback = (err, res) => {
+      const numMeasurements = measurements.length;
+      if (err) {
+        this.droppedHttp.increment(numMeasurements);
+      } else {
+        let sent = 0;
+        let dropped = 0;
+
+        if (res.statusCode === 200) {
+          sent = numMeasurements;
+        } else if (res.statusCode < 500) {
+          const reply = JSON.parse(res.body);
+          if (reply.errorCount) {
+            dropped = reply.errorCount;
+            sent = numMeasurements - dropped;
+            let errors = reply.message ? [...new Set(reply.message)].join('; ') : 'unknown cause';
+            this.registry.logger.info(
+              `${dropped} measurement(s) dropped due to validation errors: ${errors}`);
+          } else {
+            // Either a different cause for a 400 error, or a different 4xx error
+            this.registry.logger.info(
+              `${numMeasurements} measurement(s) dropped. Http status: ${res.statusCode}`
+            );
+            this.droppedOther.increment(numMeasurements);
+          }
+        } else {
+          this.droppedHttp.increment(numMeasurements);
+        }
+        this.invalidMetrics.increment(dropped);
+        this.sentMetrics.increment(sent);
+      }
+      cb(err, res);
+    };
+
+    this.http.postJson(uri, payload, metricsCallback);
     if (typeof log.isLevelEnabled === 'function' && log.isLevelEnabled('trace')) {
       for (const m of measurements) {
         log.trace(`Sent: ${m.id.key}=${m.v}`);

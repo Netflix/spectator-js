@@ -41,6 +41,7 @@ class HttpClient {
     };
 
     let attemptNumber = 0;
+
     const metricsHandler = (err, res) => {
       if (err) {
         let error = err.code;
