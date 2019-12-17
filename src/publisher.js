@@ -24,7 +24,8 @@ class Publisher {
       {id: 'dropped', error: 'validation'});
     this.droppedHttp = registry.counter('spectator.measurements',
       {id: 'dropped', error: 'http-error'});
-
+    this.droppedOther = registry.counter('spectator.measurements',
+      {id: 'dropped', error: 'other'});
     this.http = new HttpClient(registry);
   }
 
@@ -145,10 +146,16 @@ class Publisher {
           if (reply.errorCount) {
             dropped = reply.errorCount;
             sent = numMeasurements - dropped;
+            let errors = reply.message ? [...new Set(reply.message)].join('; ') : 'unknown cause';
+            this.registry.logger.info(
+              `${dropped} measurement(s) dropped due to validation errors: ${errors}`);
+          } else {
+            // Either a different cause for a 400 error, or a different 4xx error
+            this.registry.logger.info(
+              `${numMeasurements} measurement(s) dropped. Http status: ${res.statusCode}`
+            );
+            this.droppedOther.increment(numMeasurements);
           }
-          let errors = reply.message ? [...new Set(reply.message)].join('; ') : 'unknown cause';
-          this.registry.logger.info(
-            `${dropped} measurement(s) dropped due to validation errors: ${errors}`);
         } else {
           this.droppedHttp.increment(numMeasurements);
         }

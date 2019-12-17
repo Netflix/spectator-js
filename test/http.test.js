@@ -9,18 +9,24 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 describe('http client', () => {
-  it('should post JSON updating a timer', (done) => {
-    const r = new AtlasRegistry();
-    const h = new HttpClient(r);
+
+  function getServer() {
     const server = express();
     server.use(bodyParser.json({
       type: 'application/json',
       limit: '8mb'
     }));
+    return server;
+  }
+
+  it('should post JSON updating a timer', (done) => {
+    const r = new AtlasRegistry();
+    const h = new HttpClient(r);
+    const server = getServer();
 
     const listener = server.listen(() => {
       const port = listener.address().port;
-      console.log('Listening on ' + port);
+      console.log(`Listening on ${port}`);
       h.postJson('http://localhost:' + port + '/foo-endpoint',
         {foo: 'bar'});
     });
@@ -58,15 +64,11 @@ describe('http client', () => {
   it('handle 5xx', (done) => {
     const r = new AtlasRegistry();
     const h = new HttpClient(r);
-    const server = express();
-    server.use(bodyParser.json({
-      type: 'application/json',
-      limit: '8mb'
-    }));
+    const server = getServer();
 
     const listener = server.listen(() => {
       const port = listener.address().port;
-      console.log('Listening on ' + port);
+      console.log(`Listening on ${port}`);
       h.postJson('http://localhost:' + port + '/json503?',
         {foo: 'bar'});
     });
@@ -118,15 +120,11 @@ describe('http client', () => {
   it('handle retries', (done) => {
     const r = new AtlasRegistry();
     const h = new HttpClient(r);
-    const server = express();
-    server.use(bodyParser.json({
-      type: 'application/json',
-      limit: '8mb'
-    }));
+    const server = getServer();
 
     const listener = server.listen(() => {
       const port = listener.address().port;
-      console.log('Listening on ' + port);
+      console.log(`Listening on ${port}`);
       h.postJson('http://localhost:' + port + '/json503?',
         {foo: 'bar'});
     });
@@ -189,15 +187,11 @@ describe('http client', () => {
   it('handle timeout errors', (done) => {
     const r = new AtlasRegistry({timeout: 10}); // 10ms timeout
     const h = new HttpClient(r);
-    const server = express();
-    server.use(bodyParser.json({
-      type: 'application/json',
-      limit: '8mb'
-    }));
+    const server = getServer();
 
     const listener = server.listen(() => {
       const port = listener.address().port;
-      console.log('Listening on ' + port);
+      console.log(`Listening on ${port}`);
       h.postJson('http://localhost:' + port + '/json',
         {foo: 'bar'});
     });
@@ -240,11 +234,6 @@ describe('http client', () => {
   it('handle hostname errors', (done) => {
     const r = new AtlasRegistry();
     const h = new HttpClient(r);
-    const server = express();
-    server.use(bodyParser.json({
-      type: 'application/json',
-      limit: '8mb'
-    }));
 
     h.postJson('http://foo.example.org/not_found', {foo: 'bar'});
     setTimeout(() => {

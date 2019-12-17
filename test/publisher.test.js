@@ -4,17 +4,12 @@ const chai = require('chai');
 const assert = chai.assert;
 const AtlasRegistry = require('../src/registry');
 const express = require('express');
-const bodyParser = require('body-parser');
 
 describe('registry publisher', () => {
 
   function testMeasurements(statusCode, response, assertCallback, done) {
     const r = new AtlasRegistry({});
     const server = express();
-    server.use(bodyParser.json({
-      type: 'application/json',
-      limit: '8mb'
-    }));
 
     const sendMeasurements = () => {
       const valid1 = r.createId('foo1');
@@ -101,4 +96,23 @@ describe('registry publisher', () => {
       assert.equal(ms[0].v, 3);
     }, done);
   });
+
+  it('should deal with other causes for 400 errors', (done) => {
+    testMeasurements(400, {}, (ms) => {
+      assert.lengthOf(ms, 1);
+      assert.equal(ms[0].id.key,
+        'spectator.measurements|error=other|id=dropped|statistic=count');
+      assert.equal(ms[0].v, 3);
+    }, done);
+  });
+
+  // these should be very rare, assuming they occur at all
+  it('should deal with other 4xx errors', (done) => {
+    testMeasurements(413, {}, (ms) => {
+      assert.lengthOf(ms, 1);
+      assert.equal(ms[0].id.key,
+        'spectator.measurements|error=other|id=dropped|statistic=count');
+      assert.equal(ms[0].v, 3);
+    }, done);
+  })
 });
