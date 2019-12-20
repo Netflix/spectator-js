@@ -10,12 +10,6 @@ class HttpClient {
    */
   constructor(registry) {
     this.registry = registry;
-
-    this.baseId = registry.createId('http.req.complete', {
-      method: 'POST',
-      mode: 'http-client',
-      client: 'spectator-js'
-    });
   }
 
   /**

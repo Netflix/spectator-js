@@ -70,7 +70,7 @@ class LogEntry {
    */
   setSuccess() {
     const ipcSuccess = 'success';
-    this.id = this.id.withTag('ipc.result', ipcSuccess).withTag('ipc.result', ipcSuccess);
+    this.id = this.id.withTag('ipc.result', ipcSuccess).withTag('ipc.status', ipcSuccess);
   }
 }
 
