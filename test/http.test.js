@@ -2,7 +2,6 @@
 
 const chai = require('chai');
 const assert = chai.assert;
-
 const AtlasRegistry = require('../src/registry');
 const HttpClient = require('../src/http');
 const express = require('express');
