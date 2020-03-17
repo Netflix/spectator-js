@@ -34,6 +34,8 @@ class HttpClient {
       response_timeout: timeout
     };
 
+    this.registry.config.connectOptions(options);
+
     let attemptNumber = 0;
 
     const metricsHandler = (err, res) => {

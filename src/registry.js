@@ -46,6 +46,9 @@ class AtlasRegistry {
     if (!this.config.isEnabled) {
       this.config.isEnabled = () => true;
     }
+    if (!this.config.connectOptions) {
+      this.config.connectOptions = (options) => options;
+    }
     if (!this.config.batchSize) {
       this.config.batchSize = 10000;
     }
