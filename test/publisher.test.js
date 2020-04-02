@@ -7,7 +7,7 @@ const express = require('express');
 
 describe('registry publisher', () => {
 
-  function testMeasurements(statusCode, response, assertCallback, done) {
+  function testMeasurements(statusCode, response, assertCallback, done, raw) {
     const r = new AtlasRegistry({});
     const server = express();
 
@@ -35,7 +35,8 @@ describe('registry publisher', () => {
     server.post('/metrics', (req, res) => {
       r.logger.trace(`Got measurements payload: ${JSON.stringify(req.body)}`);
       res.status(statusCode);
-      res.send(JSON.stringify(response));
+      const responseBody = raw ? response : JSON.stringify(response);
+      res.send(responseBody);
       res.end();
       setTimeout(() => {
         listener.close();
@@ -114,5 +115,15 @@ describe('registry publisher', () => {
         'spectator.measurements|error=other|id=dropped|statistic=count');
       assert.equal(ms[0].v, 3);
     }, done);
-  })
+  });
+
+  it('should deal with broken responses from the server', (done) => {
+    testMeasurements(429, 'foo', (ms) => {
+
+      assert.lengthOf(ms, 1);
+      assert.equal(ms[0].id.key,
+        'spectator.measurements|error=other|id=dropped|statistic=count');
+      assert.equal(ms[0].v, 3);
+    }, done, true);
+  });
 });

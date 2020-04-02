@@ -142,7 +142,13 @@ class Publisher {
         if (res.statusCode === 200) {
           sent = numMeasurements;
         } else if (res.statusCode < 500) {
-          const reply = JSON.parse(res.body);
+          let reply;
+          try {
+            reply = JSON.parse(res.body);
+          } catch (e) {
+            this.registry.logger.info(`Unable to parse response from server: ${res.body}`);
+            reply = {};
+          }
           if (reply.errorCount) {
             dropped = reply.errorCount;
             sent = numMeasurements - dropped;
