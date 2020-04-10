@@ -143,7 +143,7 @@ class Publisher {
           sent = numMeasurements;
         } else if (res.statusCode < 500) {
           let reply;
-          if (typeof(res.body) === 'object') {
+          if (typeof (res.body) === 'object') {
             reply = res.body;
           } else {
             try {
