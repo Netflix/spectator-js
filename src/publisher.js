@@ -143,11 +143,15 @@ class Publisher {
           sent = numMeasurements;
         } else if (res.statusCode < 500) {
           let reply;
-          try {
-            reply = JSON.parse(res.body);
-          } catch (e) {
-            this.registry.logger.info(`Unable to parse response from server: ${res.body}`);
-            reply = {};
+          if (typeof (res.body) === 'object') {
+            reply = res.body;
+          } else {
+            try {
+              reply = JSON.parse(res.body);
+            } catch (e) {
+              this.registry.logger.info(`Unable to parse response from server: ${res.body}`);
+              reply = {};
+            }
           }
           if (reply.errorCount) {
             dropped = reply.errorCount;
@@ -157,8 +161,9 @@ class Publisher {
               `${dropped} measurement(s) dropped due to validation errors: ${errors}`);
           } else {
             // Either a different cause for a 400 error, or a different 4xx error
+            const body = JSON.stringify(reply);
             this.registry.logger.info(
-              `${numMeasurements} measurement(s) dropped. Http status: ${res.statusCode}`
+              `${numMeasurements} measurement(s) dropped. Http status: ${res.statusCode} ${body}`
             );
             this.droppedOther.increment(numMeasurements);
           }
