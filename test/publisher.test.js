@@ -126,4 +126,20 @@ describe('registry publisher', () => {
       assert.equal(ms[0].v, 3);
     }, done, true);
   });
+
+  it('should handle large responses', (done) => {
+    const largeResponse = {};
+    largeResponse.errorCount = 1000;
+    largeResponse.message = [];
+    const largeMessage = 'value too large: ' + 'foo'.repeat(10000);
+    for (let i = 0; i < largeResponse.errorCount; ++i) {
+      largeResponse.message.push(largeMessage);
+    }
+    testMeasurements(400, largeResponse, (ms) => {
+      assert.lengthOf(ms, 1);
+      assert.equal(ms[0].id.key,
+        'spectator.measurements|error=validation|id=dropped|statistic=count');
+      assert.equal(ms[0].v, 1000);
+    }, done);
+  });
 });
