@@ -17,7 +17,7 @@ class Counter {
   /**
    * Update the counter by amount.
    * @param {number} [amount=1] amount to add to the counter.
-   * @return {undefined}
+   * @return {void}
    */
   increment(amount) {
     if (amount !== undefined) {
@@ -32,12 +32,11 @@ class Counter {
   /**
    * Update the counter by amount.
    * @param {number} [amount=1] amount to add to the counter.
-   * @return {undefined}
+   * @return {void}
    */
   add(amount) {
     this.increment(amount);
   }
-
 
   /**
    * Get the measurements for this meter.
@@ -53,7 +52,7 @@ class Counter {
     }
 
     this.count = 0;
-    return [{id: this.id.withDefaultStat('count'), v: c}];
+    return [{ id: this.id.withDefaultStat('count'), v: c }];
   }
 }
 
