@@ -26,8 +26,14 @@ declare class Registry {
   logger: Logger;
   createId(name: string, tags: Tags): MeterId;
   counter(nameOrId: string | MeterId, tags: Tags): Counter;
+  /**
+   * @deprecated
+   **/
   dcounter(nameOrId: string | MeterId, tags: Tags): Counter;
   distributionSummary(nameOrId: string, tags: Tags): DistributionSummary;
+  /**
+   * @deprecated
+   **/
   distSummary(nameOrId: string | MeterId, tags: Tags): DistributionSummary;
   gauge(nameOrId: string | MeterId, tags: Tags): Gauge;
   timer(nameOrId: string | MeterId, tags: Tags): Timer;
