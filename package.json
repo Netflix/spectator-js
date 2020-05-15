@@ -3,6 +3,7 @@
   "version": "0.2.2",
   "author": "Daniel Muino <dmuino@gmail.com>",
   "main": "src/index.js",
+  "types": "src/index.d.ts",
   "homepage": "https://github.org/Netflix/spectator-js",
   "repository": {
     "type": "git",
@@ -21,16 +22,30 @@
     "istanbul": "^0.4.5",
     "jscs": "^3.0.7",
     "mocha": "^5.2.0",
-    "travis-deploy-once": "^4.4.1"
+    "rimraf": "^3.0.2",
+    "travis-deploy-once": "^4.4.1",
+    "tsd": "^0.11.0"
   },
   "scripts": {
-    "test": "mocha --reporter spec",
+    "clean": "rimraf ./src/*.d.ts",
+    "copy": "cp -rf ./types/* ./src",
+    "prepare": "npm run clean && npm run copy",
+    "test": "npm run test:unit && npm run test:types",
+    "test:types": "npm run clean && npm run copy && tsd",
+    "test:unit": "mocha --reporter spec",
     "cover": "node_modules/istanbul/lib/cli.js cover node_modules/mocha/bin/_mocha -- -R spec test/*",
     "lint": "eslint src/*.js test/*.js"
   },
   "files": [
-    "src/*"
+    "src/*",
+    "src/index.d.ts"
   ],
+  "tsd": {
+    "directory": "test-d",
+    "compilerOptions": {
+      "esModuleInterop": true
+    }
+  },
   "dependencies": {
     "async": "^3.1.0",
     "needle": "^2.4.0"
