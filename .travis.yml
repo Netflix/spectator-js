@@ -11,6 +11,7 @@ after_success:
 deploy:
   on: 
     tags: true
+    node_js: '10'
   provider: npm
   tag: next
   email: dmuino@gmail.com
