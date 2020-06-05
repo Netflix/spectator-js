@@ -1,6 +1,6 @@
 {
   "name": "nflx-spectator",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "author": "Daniel Muino <dmuino@gmail.com>",
   "main": "src/index.js",
   "types": "src/index.d.ts",
