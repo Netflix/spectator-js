@@ -1,6 +1,6 @@
 {
   "name": "nflx-spectator",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "author": "Daniel Muino <dmuino@gmail.com>",
   "main": "src/index.js",
   "types": "src/index.d.ts",
@@ -22,12 +22,11 @@
     "istanbul": "^0.4.5",
     "jscs": "^3.0.7",
     "mocha": "^5.2.0",
-    "rimraf": "^3.0.2",
     "travis-deploy-once": "^4.4.1",
     "tsd": "^0.11.0"
   },
   "scripts": {
-    "clean": "node_modules/rimraf/bin.js ./src/*.d.ts",
+    "clean": "rm -f ./src/*.d.ts",
     "copy": "cp -rf ./types/* ./src",
     "prepare": "npm run clean && npm run copy",
     "test": "npm run test:unit && npm run test:types",
