@@ -1,9 +1,8 @@
 dist: xenial
 language: node_js
 node_js:
-- '6'
 - '10'
-- '13'
+- '14'
 script:
 - make
 after_success:
