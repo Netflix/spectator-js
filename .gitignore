@@ -4,3 +4,4 @@ node_modules/
 jsconfig.json
 *.tgz
 src/*.d.ts
+.nyc_output
