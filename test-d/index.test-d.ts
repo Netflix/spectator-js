@@ -8,7 +8,8 @@ import Timer from '../types/timer';
 import { Measurement } from '../types/global';
 
 // Main Registry
-expectError<Registry>(new Registry());
+expectType<Registry>(new Registry());
+// Allow empty object also
 const registry = new Registry({});
 expectType<Registry>(registry);
 

@@ -22,7 +22,7 @@ interface Logger {
 }
 
 declare class Registry {
-  constructor(config: Partial<ConfigOptions>);
+  constructor(config?: Partial<ConfigOptions>);
   logger: Logger;
   createId(name: string, tags: Tags): MeterId;
   counter(nameOrId: string | MeterId, tags: Tags): Counter;
