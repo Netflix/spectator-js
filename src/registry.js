@@ -6,6 +6,12 @@ const Counter = require('./counter');
 const Gauge = require('./gauge');
 const Timer = require('./timer');
 const DistributionSummary = require('./dist_summary');
+const IntervalCounter = require('./interval_counter');
+const PercentileTimer = require('./percentile_timer');
+const PercentileDistSummary = require('./percentile_dist_summary');
+const BucketCounter = require('./bucket_counter');
+const BucketTimer = require('./bucket_timer');
+const BucketDistSummary = require('./bucket_dist_summary');
 const getLoggers = require('./logger');
 
 /**
@@ -300,6 +306,44 @@ class AtlasRegistry {
     return this._newMeter(meterId, Timer);
   }
 
+  intervalCounter(nameOrId, tags) {
+    const meterId = this._getId(nameOrId, tags);
+    return IntervalCounter.get(this, meterId);
+  }
+
+  percentileTimer(nameOrId, tags) {
+    const meterId = this._getId(nameOrId, tags);
+    return PercentileTimer.get(this, meterId);
+  }
+
+  percentileDistSummary(nameOrId, tags) {
+    const meterId = this._getId(nameOrId, tags);
+    return PercentileDistSummary.get(this, meterId);
+  }
+
+  _bucketMeter(nameOrId, tags, bucketFunction, Class) {
+    let fun, id;
+    if (typeof tags === 'function') {
+      fun = tags;
+      id = this._getId(nameOrId, {});
+    } else {
+      id = this._getId(nameOrId, tags);
+      fun = bucketFunction;
+    }
+    return Class.get(this, id, fun);
+  }
+
+  bucketTimer(nameOrId, tags, bucketFunction) {
+    return this._bucketMeter(nameOrId, tags, bucketFunction, BucketTimer);
+  }
+
+  bucketCounter(nameOrId, tags, bucketFunction) {
+    return this._bucketMeter(nameOrId, tags, bucketFunction, BucketCounter);
+  }
+
+  bucketDistSummary(nameOrId, tags, bucketFunction) {
+    return this._bucketMeter(nameOrId, tags, bucketFunction, BucketDistSummary);
+  }
 
   /**
    * publish metrics now
