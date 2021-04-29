@@ -43,14 +43,6 @@ else
 	@npm test
 endif
 
-.PHONY: report-coverage
-report-coverage:
-ifeq ($(NODE_VERSION),v10)
-	curl -s https://codecov.io/bash  | bash
-else
-	@echo Not uploading code-coverage since running under $(NODE_VERSION)
-endif
-
 .PHONY: clean
 clean:
 	@rm -rf $(COVERAGE_FILES)
