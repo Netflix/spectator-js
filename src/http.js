@@ -44,7 +44,7 @@ class HttpClient {
 
         if (error === 'ECONNRESET') {
           logEntry.setError('timeout');
-          log.error(`Timeout POSTing metrics to ${endpoint}`);
+          log.debug(`Timeout POSTing metrics to ${endpoint}`);
         } else {
           log.error(`problem with request: ${err.message}`);
           logEntry.setError(err.code.toString());
