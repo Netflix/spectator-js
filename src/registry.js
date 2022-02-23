@@ -399,12 +399,20 @@ class AtlasRegistry {
    *   by our registered meters.
    */
   measurements() {
-    let a = [];
+    // meter.measure() returns an array of up to 4 items,
+    // so pre-allocate the max size and trim down at the end
+    let a = new Array(this.metersMap.size * 4);
+    let len = 0;
 
     for (let meter of this.metersMap.values()) {
-      Array.prototype.push.apply(a, meter.measure());
+      const measures = meter.measure();
+      for (let m of measures) {
+        a[len] = m;
+        len++;
+      }
     }
-    return a;
+    // Slice off any trailing empty values
+    return Array.prototype.slice.call(a, 0, len);
   }
 
   /**
