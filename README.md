@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/Netflix/spectator-js.svg?branch=master)](https://travis-ci.org/Netflix/spectator-js) 
+[![Snapshot](https://github.com/Netflix/spectator-js/actions/workflows/snapshot.yml/badge.svg)](https://github.com/Netflix/spectator-js/actions/workflows/snapshot.yml)
+[![Release](https://github.com/Netflix/spectator-js/actions/workflows/release.yml/badge.svg)](https://github.com/Netflix/spectator-js/actions/workflows/release.yml)
 
 # Spectator-js
 
