@@ -10,16 +10,18 @@ jobs:
   build:
     if: ${{ github.repository == 'Netflix/spectator-js' }}
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [10, 12, 14]
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Node ${{ matrix.node-version }}
+      - name: Set up Node 10
         uses: actions/setup-node@v2
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: '10'
+          registry-url: 'https://registry.npmjs.org'
       - name: Install Dependencies
         run: npm install
       - name: Make
         run: make
+      - name: Publish
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
