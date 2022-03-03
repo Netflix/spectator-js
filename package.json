@@ -1,6 +1,6 @@
 {
   "name": "nflx-spectator",
-  "version": "0.3.2",
+  "version": "1.0.0",
   "author": "Matthew Johnson <matthewj@gmail.com>",
   "main": "src/index.js",
   "types": "src/index.d.ts",
