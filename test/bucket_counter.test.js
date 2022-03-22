@@ -35,4 +35,19 @@ describe('Bucket Counters', () => {
     assert.lengthOf(meters, 2);
     assert.equal(sum(meters), 3);
   });
+
+  it('increment', () => {
+    const r = new Registry();
+    const c = BucketCounter.get(r, r.createId('test'), BucketFunctions.latency(4, 's'));
+
+    c.record(3750 * 1e6);
+    let meters = filter(r.meters(), 'test');
+    assert.lengthOf(meters, 1);
+    assert.equal(sum(meters), 1);
+
+    c.increment(3750 * 1e6, 5);
+    meters = filter(r.meters(), 'test');
+    assert.lengthOf(meters, 1);
+    assert.equal(sum(meters), 6);
+  });
 });

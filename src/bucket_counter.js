@@ -30,6 +30,19 @@ class BucketCounter {
   record(amount) {
     this._counter(this.bucketFunction(amount)).increment();
   }
+
+  /**
+   * Update the counter associated with the amount by {@code n}.
+   *
+   * @param {number} amount
+   *     Amount to use for determining the bucket.
+   * @param {number} n
+   *     The delta to apply to the counter.
+   * @returns {undefined}
+   */
+  increment(amount, n) {
+    this._counter(this.bucketFunction(amount)).increment(n);
+  }
 }
 
 module.exports = BucketCounter;
