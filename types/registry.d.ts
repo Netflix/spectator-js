@@ -41,7 +41,7 @@ declare class Registry {
   stop(cb?: (e: Error, res: any) => void): void;
   measurements(): Measurement[];
   meters(): (Counter | DistributionSummary | Gauge | Timer)[];
-  hrtime(time: [number, number]): [number, number];
+  hrtime(time?: [number, number]): [number, number];
 }
 
 export = Registry;
