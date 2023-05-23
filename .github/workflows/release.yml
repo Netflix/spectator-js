@@ -12,10 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Node 10
+      - name: Set up Node 18
         uses: actions/setup-node@v2
         with:
-          node-version: '10'
+          node-version: '18'
           registry-url: 'https://registry.npmjs.org'
       - name: Install Dependencies
         run: npm install

@@ -5,3 +5,4 @@ jsconfig.json
 *.tgz
 src/*.d.ts
 .nyc_output
+package-lock.json
