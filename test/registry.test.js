@@ -6,8 +6,8 @@ const assert = chai.assert;
 const AtlasRegistry = require('../src/registry');
 const MeterId = require('../src/meter_id');
 
-function newRegistry() {
-  const c = {
+function newConfig() {
+  return {
     strictMode: true,
     commonTags: {
       'nf.node': 'i-12345',
@@ -15,10 +15,21 @@ function newRegistry() {
       'nf.app': 'app'
     }
   };
+}
+
+function newRegistry() {
+  const c = newConfig();
   return new AtlasRegistry(c);
 }
 
 describe('AtlasRegistry', () => {
+  it('should log config correctly', () => {
+    const c = newConfig();
+    const log = `${JSON.stringify(c)}`;
+    const expected = '{"strictMode":true,"commonTags":{"nf.node":"i-12345","nf.cluster":"app-main","nf.app":"app"}}';
+    assert.deepEqual(log, expected);
+  });
+
   it('measurements', () => {
     const r = newRegistry();
     r.counter('c').increment();
