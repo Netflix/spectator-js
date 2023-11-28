@@ -174,7 +174,7 @@ class AtlasRegistry {
       return;
     }
 
-    this.logger.info(`Starting spectator registry with config: ${c}`);
+    this.logger.info(`Starting spectator registry with config: ${JSON.stringify(c)}`);
     this.started = true;
     this.startId = setInterval(AtlasRegistry._publish, c.frequency || 5000, this);
     this.startId.unref();
