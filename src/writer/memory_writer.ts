@@ -11,7 +11,7 @@ export class MemoryWriter extends Writer {
      * Writer that stores lines in a list, to support unit testing.
      */
 
-    _messages: string[];
+    private _messages: string[];
 
     constructor(logger: Logger = get_logger()) {
         super(logger);

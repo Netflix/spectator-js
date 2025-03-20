@@ -23,12 +23,12 @@ export class Id {
      * ensure that any extra common tags are properly applied to the Meter.
      */
 
-    INVALID_CHARS: RegExp = new RegExp(/[^-._A-Za-z0-9~^]/g);
+    private INVALID_CHARS: RegExp = new RegExp(/[^-._A-Za-z0-9~^]/g);
 
     private readonly _logger: Logger;
     private readonly _name: string;
     private readonly _tags: Tags;
-    spectatord_id: string;
+    public spectatord_id: string;
 
     constructor(name: string, tags?: Tags, logger?: Logger) {
         // initialization order in this constructor matters, for logging and testing purposes

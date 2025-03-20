@@ -8,10 +8,10 @@ export class UdpWriter extends Writer {
      * Writer that outputs data to a UDP socket.
      */
 
-    _address: string;
-    _port: number;
-    _family: SocketType;
-    _socket: Socket;
+    private readonly _address: string;
+    private readonly _port: number;
+    private readonly _family: SocketType;
+    private _socket: Socket;
 
     constructor(location: string, address: string, port: number, logger: Logger = get_logger()) {
         super(logger);
