@@ -9,7 +9,7 @@ export class FileWriter extends Writer {
      * socket, or a regular file.
      */
 
-    _location: string;
+    private readonly _location: string;
 
     constructor(location: string, logger: Logger = get_logger()) {
         super(logger);
