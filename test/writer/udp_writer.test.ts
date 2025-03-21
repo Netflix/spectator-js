@@ -1,11 +1,8 @@
 import {assert} from "chai";
-import {new_writer} from "../../src/writer/new_writer.js";
-import {UdpWriter} from "../../src/writer/udp_writer.js";
+import {Config, new_writer, Registry, UdpWriter} from "../../src/index.js";
 import {AddressInfo, isIPv4, isIPv6} from "node:net";
 import {createSocket, Socket} from "node:dgram";
 import {after, before, describe, it} from "node:test";
-import {Config} from "../../src/config.js";
-import {Registry} from "../../src/registry.js";
 
 describe("UdpWriter Tests", (): void => {
 

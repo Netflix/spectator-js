@@ -1,6 +1,5 @@
 import {assert} from "chai";
-import {new_writer} from "../../src/writer/new_writer.js";
-import {MemoryWriter} from "../../src/writer/memory_writer.js";
+import {MemoryWriter, new_writer} from "../../src/index.js";
 import {describe, it} from "node:test";
 
 describe("MemoryWriter Tests", (): void => {

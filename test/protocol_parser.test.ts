@@ -1,5 +1,5 @@
 import {assert} from "chai";
-import {parse_protocol_line} from "../src/protocol_parser.js";
+import {parse_protocol_line} from "../src/index.js";
 import {describe, it} from "node:test";
 import {Id} from "../src/meter/id.js";
 

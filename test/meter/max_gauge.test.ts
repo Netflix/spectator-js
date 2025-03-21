@@ -1,7 +1,5 @@
 import {assert} from "chai";
-import {MemoryWriter} from "../../src/writer/memory_writer.js";
-import {Id} from "../../src/meter/id.js";
-import {MaxGauge} from "../../src/meter/max_gauge.js";
+import {Id, MaxGauge, MemoryWriter} from "../../src/index.js";
 import {describe, it} from "node:test";
 
 describe("MaxGauge Tests", (): void => {

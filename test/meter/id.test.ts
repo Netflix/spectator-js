@@ -1,5 +1,5 @@
 import {assert} from "chai";
-import {Id, Tags} from "../../src/meter/id.js";
+import {Id, Tags} from "../../src/index.js";
 import {describe, it} from "node:test";
 
 describe("Id Tests", (): void => {

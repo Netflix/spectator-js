@@ -1,10 +1,9 @@
 import {assert} from "chai";
-import {new_writer} from "../../src/writer/new_writer.js";
+import {FileWriter, new_writer} from "../../src/index.js";
 import {fileURLToPath} from "node:url";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import {FileWriter} from "../../src/writer/file_writer.js";
 import {after, before, describe, it} from "node:test";
 
 describe("FileWriter Tests", (): void => {

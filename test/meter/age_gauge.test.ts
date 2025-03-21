@@ -1,7 +1,5 @@
 import {assert} from "chai";
-import {MemoryWriter} from "../../src/writer/memory_writer.js";
-import {Id} from "../../src/meter/id.js";
-import {AgeGauge} from "../../src/meter/age_gauge.js";
+import {AgeGauge, Id, MemoryWriter} from "../../src/index.js";
 import {describe, it} from "node:test";
 
 describe("AgeGauge Tests", (): void => {
