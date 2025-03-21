@@ -22,5 +22,8 @@ Install a version of [Node.js] >= 18, possibly with [Homebrew] or [nvm].
 npm run build-and-test
 ```
 
+Followed the advice in [Supporting CommonJS and ESM with Typescript and Node] to produce both CJS and ESM output.
+
 [Homebrew]: https://brew.sh/
 [nvm]: https://github.com/nvm-sh/nvm
+[Supporting CommonJS and ESM with Typescript and Node]: https://evertpot.com/universal-commonjs-esm-typescript-packages/
