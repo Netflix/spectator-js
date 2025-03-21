@@ -5,14 +5,16 @@
   "homepage": "https://github.com/Netflix/spectator-js",
   "author": "Netflix Telemetry Engineering <netflix-atlas@googlegroups.com>",
   "type": "module",
+  "main": "cjs/src/index.js",
+  "module": "build/src/index.js",
+  "types": "build/src/index.d.ts",
+  "files": [
+    "build/src/**/*",
+    "cjs/src/**/*.js"
+  ],
   "engines": {
     "node": ">=18.0.0"
   },
-  "main": "build/src/index.js",
-  "files": [
-    "build/src/**/*"
-  ],
-  "types": "build/src/index.d.ts",
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.0",
     "@eslint/js": "^9.9.1",
@@ -30,9 +32,9 @@
     "typescript": "^5.8.2"
   },
   "scripts": {
-    "clean": "rm -rf build",
-    "build": "tsc",
-    "build-and-test": "tsc && npm run test",
+    "clean": "rm -rf build cjs",
+    "build": "tsc; tsc --outDir cjs --module commonjs",
+    "build-and-test": "npm run build; npm run test",
     "lint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "test": "mocha 'build/test/**/*.test.js'",
     "test-with-coverage": "c8 mocha --reporter min 'build/test/**/*.test.js'",
