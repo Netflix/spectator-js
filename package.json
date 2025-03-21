@@ -1,15 +1,18 @@
 {
   "name": "nflx-spectator",
-  "version": "3.0.0-rc.3",
+  "version": "3.0.0-rc.4",
   "license": "Apache-2.0",
   "homepage": "https://github.com/Netflix/spectator-js",
   "author": "Netflix Telemetry Engineering <netflix-atlas@googlegroups.com>",
   "type": "module",
   "main": "cjs/src/index.js",
-  "module": "build/src/index.js",
   "types": "build/src/index.d.ts",
+  "exports": {
+    "import": "./esm/src/index.js",
+    "require": "./cjs/src/index.js"
+  },
   "files": [
-    "build/src/**/*",
+    "esm/src/**/*",
     "cjs/src/**/*.js"
   ],
   "engines": {
@@ -32,12 +35,12 @@
     "typescript": "^5.8.2"
   },
   "scripts": {
-    "clean": "rm -rf build cjs",
-    "build": "tsc; tsc --outDir cjs --module commonjs",
+    "clean": "rm -rf cjs coverage esm",
+    "build": "tsc --module commonjs --outDir cjs; tsc --module es2022 --outDir esm",
     "build-and-test": "npm run build; npm run test",
     "lint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
-    "test": "mocha 'build/test/**/*.test.js'",
-    "test-with-coverage": "c8 mocha --reporter min 'build/test/**/*.test.js'",
-    "check-coverage": "c8 check-coverage --lines 90 mocha 'build/test/**/*.test.js'"
+    "test": "mocha 'esm/test/**/*.test.js'",
+    "test-with-coverage": "c8 mocha --reporter min 'esm/test/**/*.test.js'",
+    "check-coverage": "c8 check-coverage --lines 90 mocha 'esm/test/**/*.test.js'"
   }
 }
