@@ -1,7 +1,5 @@
 import {assert} from "chai";
-import {MemoryWriter} from "../../src/writer/memory_writer.js";
-import {Id} from "../../src/meter/id.js";
-import {Timer} from "../../src/meter/timer.js";
+import {Id, MemoryWriter, Timer} from "../../src/index.js";
 import {describe, it} from "node:test";
 
 describe("Timer Tests", (): void => {

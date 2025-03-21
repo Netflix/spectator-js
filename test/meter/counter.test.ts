@@ -1,7 +1,5 @@
 import {assert} from "chai";
-import {MemoryWriter} from "../../src/writer/memory_writer.js";
-import {Id} from "../../src/meter/id.js";
-import {Counter} from "../../src/meter/counter.js";
+import {Counter, Id, MemoryWriter} from "../../src/index.js";
 import {describe, it} from "node:test";
 
 describe("Counter Tests", (): void => {

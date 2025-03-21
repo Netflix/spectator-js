@@ -1,7 +1,5 @@
 import {assert} from "chai";
-import {MemoryWriter} from "../../src/writer/memory_writer.js";
-import {Id} from "../../src/meter/id.js";
-import {PercentileDistributionSummary} from "../../src/meter/percentile_dist_summary.js";
+import {Id, MemoryWriter, PercentileDistributionSummary} from "../../src/index.js";
 import {describe, it} from "node:test";
 
 describe("PercentileDistributionSummary Tests", (): void => {

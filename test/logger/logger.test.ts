@@ -1,5 +1,5 @@
 import {assert} from "chai";
-import {get_logger, Logger} from "../../src/logger/logger.js";
+import {get_logger, Logger} from "../../src/index.js";
 import {describe, it} from "node:test";
 
 describe("Logger Tests", (): void => {

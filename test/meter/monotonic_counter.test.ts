@@ -1,7 +1,5 @@
 import {assert} from "chai";
-import {MemoryWriter} from "../../src/writer/memory_writer.js";
-import {Id} from "../../src/meter/id.js";
-import {MonotonicCounter} from "../../src/meter/monotonic_counter.js";
+import {Id, MemoryWriter, MonotonicCounter} from "../../src/index.js";
 import {describe, it} from "node:test";
 
 describe("MonotonicCounter Tests", (): void => {

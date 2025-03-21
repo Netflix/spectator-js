@@ -1,10 +1,8 @@
 import {assert} from "chai";
-import {get_logger} from "../../src/logger/logger.js";
-import {new_writer} from "../../src/writer/new_writer.js";
+import {get_logger, new_writer, NoopWriter} from "../../src/index.js";
 import {describe, it} from "node:test";
-import {NoopWriter} from "../../src/writer/noop_writer.js";
 
-describe("NoopWriter Tests", () => {
+describe("NoopWriter Tests", (): void => {
 
     it("logs", (): void => {
         const messages: string[] = [];

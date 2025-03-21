@@ -1,20 +1,23 @@
 import {assert} from "chai";
-import {Registry} from "../src/registry.js";
-import {Config} from "../src/config.js";
-import {isMemoryWriter, MemoryWriter} from "../src/writer/memory_writer.js";
-import {get_logger} from "../src/logger/logger.js";
-import {Counter} from "../src/meter/counter.js";
-import {AgeGauge} from "../src/meter/age_gauge.js";
-import {DistributionSummary} from "../src/meter/dist_summary.js";
-import {Gauge} from "../src/meter/gauge.js";
-import {MaxGauge} from "../src/meter/max_gauge.js";
-import {MonotonicCounter} from "../src/meter/monotonic_counter.js";
-import {Id} from "../src/meter/id.js";
-import {PercentileDistributionSummary} from "../src/meter/percentile_dist_summary.js";
-import {PercentileTimer} from "../src/meter/percentile_timer.js";
-import {Timer} from "../src/meter/timer.js";
+import {
+    AgeGauge,
+    Config,
+    Counter,
+    DistributionSummary,
+    Gauge,
+    get_logger,
+    Id,
+    isMemoryWriter,
+    MaxGauge,
+    MemoryWriter,
+    MonotonicCounter,
+    MonotonicCounterUint,
+    PercentileDistributionSummary,
+    PercentileTimer,
+    Registry,
+    Timer
+} from "../src/index.js";
 import {describe, it} from "node:test";
-import {MonotonicCounterUint} from "../src/meter/monotonic_counter_uint.js";
 
 describe("Registry Tests", (): void => {
     it("close", (): void => {

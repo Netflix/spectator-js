@@ -1,5 +1,5 @@
 import {assert} from "chai";
-import {Config} from "../src/config.js";
+import {Config} from "../src/index.js";
 import process from "node:process";
 import {describe, it} from "node:test";
 
