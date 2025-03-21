@@ -1,6 +1,6 @@
 {
   "name": "nflx-spectator",
-  "version": "3.0.0-rc.5",
+  "version": "3.0.0-rc.6",
   "license": "Apache-2.0",
   "homepage": "https://github.com/Netflix/spectator-js",
   "author": "Netflix Telemetry Engineering <netflix-atlas@googlegroups.com>",
@@ -8,12 +8,20 @@
   "main": "cjs/src/index.js",
   "types": "esm/src/index.d.ts",
   "exports": {
-    "import": "./esm/src/index.js",
-    "require": "./cjs/src/index.js"
+    ".": {
+      "import": {
+        "default": "./cjs/src/index.js",
+        "types": "./cjs/src/index.d.ts"
+      },
+      "require": {
+        "default": "./esm/src/index.js",
+        "types": "./esm/src/index.d.ts"
+      }
+    }
   },
   "files": [
     "esm/src/**/*",
-    "cjs/src/**/*.js"
+    "cjs/src/**/*"
   ],
   "engines": {
     "node": ">=18.0.0"
@@ -36,7 +44,9 @@
   },
   "scripts": {
     "clean": "rm -rf cjs coverage esm",
-    "build": "tsc --module commonjs --outDir cjs; tsc --module es2022 --outDir esm",
+    "build-cjs": "tsc --module commonjs --outDir cjs; echo '{\"type\": \"commonjs\"}' > cjs/package.json",
+    "build-esm": "tsc --module es2022 --outDir esm; echo '{\"type\": \"module\"}' > esm/package.json",
+    "build": "npm run build-cjs; npm run build-esm",
     "build-and-test": "npm run build; npm run test",
     "lint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "test": "mocha 'esm/test/**/*.test.js'",
