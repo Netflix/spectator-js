@@ -20,15 +20,16 @@ export class Registry {
      * Registry is the main entry point for interacting with the Spectator library.
      */
 
+    public logger: Logger;
+
     private _config: Config;
-    private readonly _logger: Logger;
     private readonly _writer: WriterUnion;
 
     constructor(config: Config) {
         this._config = config;
-        this._logger = config.logger;
-        this._writer = new_writer(this._config.location, this._logger);
-        this._logger.debug(`Create Registry with extra_common_tags=${tags_toString(this._config.extra_common_tags)}`);
+        this.logger = config.logger;
+        this._writer = new_writer(this._config.location, this.logger);
+        this.logger.debug(`Create Registry with extra_common_tags=${tags_toString(this._config.extra_common_tags)}`);
     }
 
     writer(): WriterUnion {
@@ -37,11 +38,11 @@ export class Registry {
 
     close(): Promise<void> {
         try {
-            this._logger.debug("Close Registry Writer");
+            this.logger.debug("Close Registry Writer");
             return this._writer.close();
         } catch (error) {
             if (error instanceof Error) {
-                this._logger.error(`Error closing Registry Writer: ${error.message}`);
+                this.logger.error(`Error closing Registry Writer: ${error.message}`);
             }
             return new Promise((_: (value: void | PromiseLike<void>) => void, reject: (reason?: any) => void): void => {
                 reject(error);
