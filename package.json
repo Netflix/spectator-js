@@ -1,6 +1,6 @@
 {
   "name": "nflx-spectator",
-  "version": "3.0.0-rc.6",
+  "version": "3.0.0-rc.7",
   "license": "Apache-2.0",
   "homepage": "https://github.com/Netflix/spectator-js",
   "author": "Netflix Telemetry Engineering <netflix-atlas@googlegroups.com>",
@@ -20,8 +20,10 @@
     }
   },
   "files": [
-    "esm/src/**/*",
-    "cjs/src/**/*"
+    "cjs/package.json",
+    "cjs/src/**/*",
+    "esm/package.json",
+    "esm/src/**/*"
   ],
   "engines": {
     "node": ">=18.0.0"
