@@ -324,10 +324,13 @@ describe("Registry Tests", (): void => {
         const c: Counter = r.counter("counter");
         c.increment();
 
+        r.logger.debug("use registry logger to leave a message");
+
         const expected_messages = [
             "DEBUG: initialize MemoryWriter",
             "DEBUG: Create Registry with extra_common_tags={}",
-            "DEBUG: write line=c:counter:1"
+            "DEBUG: write line=c:counter:1",
+            "DEBUG: use registry logger to leave a message"
         ];
         assert.deepEqual(expected_messages, messages);
 
