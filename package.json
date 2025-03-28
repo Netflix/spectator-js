@@ -1,6 +1,6 @@
 {
   "name": "nflx-spectator",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "license": "Apache-2.0",
   "homepage": "https://github.com/Netflix/spectator-js",
   "author": "Netflix Telemetry Engineering <netflix-atlas@googlegroups.com>",
@@ -46,8 +46,8 @@
   },
   "scripts": {
     "clean": "rm -rf cjs coverage esm",
-    "build-cjs": "tsc --module commonjs --outDir cjs; echo '{\"type\": \"commonjs\"}' > cjs/package.json",
-    "build-esm": "tsc --module es2022 --outDir esm; echo '{\"type\": \"module\"}' > esm/package.json",
+    "build-cjs": "tsc --target es5 --module commonjs --outDir cjs; echo '{\"type\": \"commonjs\"}' > cjs/package.json",
+    "build-esm": "tsc --target es2022 --module nodenext --outDir esm; echo '{\"type\": \"module\"}' > esm/package.json",
     "build": "npm run build-cjs; npm run build-esm",
     "build-and-test": "npm run build; npm run test",
     "lint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
