@@ -11,9 +11,28 @@ export class Timer extends Meter {
         super(id, writer, "t");
     }
 
-    record(seconds: number = 1): Promise<void> {
-        if (seconds >= 0) {
-            const line = `${this._meter_type_symbol}:${this._id.spectatord_id}:${seconds}`
+    /**
+     * @param {number|number[]} seconds
+     *     Number of seconds, which may be fractional, or an array of two numbers [seconds, nanoseconds],
+     *     which is the return value from process.hrtime(), and serves as a convenient means of recording
+     *     latency durations.
+     *
+     *     start = process.hrtime();
+     *     // do work
+     *     registry.timer("eventLatency").record(process.hrtime(start));
+     *
+     */
+    record(seconds: number | number[]): Promise<void> {
+        let elapsed: number;
+
+        if (seconds instanceof Array) {
+            elapsed = seconds[0] + (seconds[1] / 1e9);
+        } else {
+            elapsed = seconds;
+        }
+
+        if (elapsed >= 0) {
+            const line = `${this._meter_type_symbol}:${this._id.spectatord_id}:${elapsed}`;
             return this._writer.write(line);
         } else {
             return new Promise((resolve: (value: void | PromiseLike<void>) => void): void => {
