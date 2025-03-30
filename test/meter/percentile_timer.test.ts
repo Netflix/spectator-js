@@ -28,4 +28,28 @@ describe("PercentileTimer Tests", (): void => {
         t.record(0);
         assert.equal("T:percentile_timer:0", writer.last_line());
     });
+
+    it("record latency from hrtime", (): void => {
+        let nanos: number = 0;
+        let round: number = 1;
+        const f: NodeJS.HRTime = process.hrtime;
+        Object.defineProperty(process, "hrtime", {
+            get(): () => [number, number] {
+                return (): [number, number] => {
+                    nanos += round * 1e6;  // 1ms lag first time, 2ms second time, etc.
+                    ++round;
+                    return [0, nanos];
+                };
+            }
+        });
+
+        const start: [number, number] = process.hrtime();
+
+        const t = new PercentileTimer(tid, new MemoryWriter());
+        const writer = t.writer() as MemoryWriter;
+        t.record(process.hrtime(start));  // two calls to hrtime = 1ms + 2ms = 3ms
+        assert.equal("T:percentile_timer:0.003", writer.last_line());
+
+        Object.defineProperty(process, "hrtime", f);
+    });
 });
