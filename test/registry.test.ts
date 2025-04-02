@@ -15,7 +15,7 @@ import {
     PercentileDistributionSummary,
     PercentileTimer,
     Registry,
-    Timer
+    Timer, UdpWriter
 } from "../src/index.js";
 import {describe, it} from "node:test";
 
@@ -30,6 +30,11 @@ describe("Registry Tests", (): void => {
 
         r.close();
         assert.isTrue(writer.is_empty());
+    });
+
+    it("default config", (): void => {
+        const r = new Registry();
+        assert.isTrue(r.writer() instanceof UdpWriter);
     });
 
     it("age_gauge", (): void => {
