@@ -25,7 +25,7 @@ export class Registry {
     private _config: Config;
     private readonly _writer: WriterUnion;
 
-    constructor(config: Config) {
+    constructor(config: Config = new Config()) {
         this._config = config;
         this.logger = config.logger;
         this._writer = new_writer(this._config.location, this.logger);
