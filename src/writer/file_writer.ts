@@ -5,8 +5,7 @@ import {fileURLToPath} from "node:url";
 
 export class FileWriter extends Writer {
     /**
-     * Writer that outputs data to a file descriptor, which can be stdout, stderr, a unix domain
-     * socket, or a regular file.
+     * Writer that outputs data to a file descriptor, which can be stdout, stderr, or a regular file.
      */
 
     private readonly _location: string;

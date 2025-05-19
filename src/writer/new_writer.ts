@@ -10,7 +10,7 @@ import {StdoutWriter} from "./stdout_writer.js";
 export type WriterUnion = FileWriter | MemoryWriter | NoopWriter | StderrWriter | StdoutWriter | UdpWriter;
 
 export function is_valid_output_location(location: string): boolean {
-    return ["none", "memory", "stderr", "stdout", "udp", "unix"].includes(location) ||
+    return ["none", "memory", "stderr", "stdout", "udp"].includes(location) ||
         location.startsWith("file://") ||
         location.startsWith("udp://");
 }
@@ -38,9 +38,6 @@ export function new_writer(location: string, logger?: Logger): WriterUnion {
         } else {
             writer = new UdpWriter(location, parsed.hostname, Number(parsed.port), logger);
         }
-    } else if (location == "unix") {
-        location = "file:///run/spectatord/spectatord.unix";
-        writer = logger == undefined ? new FileWriter(location) : new FileWriter(location, logger);
     } else if (location.startsWith("file://")) {
         writer = logger == undefined ? new FileWriter(location) : new FileWriter(location, logger);
     } else if (location.startsWith("udp://")) {

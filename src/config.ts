@@ -18,12 +18,23 @@ export class Config {
      *   * `stderr` - Write metrics to standard error.
      *   * `stdout` - Write metrics to standard output.
      *   * `udp`    - Write metrics to the default spectatord UDP port. This is the default value.
-     *   * `unix`   - Write metrics to the default spectatord Unix Domain Socket. Useful for high-volume scenarios.
-     *   * `file:///path/to/file` - Write metrics to a file or a Unix Domain Socket.
+     *   * `file:///path/to/file` - Write metrics to a file.
      *   * `udp://host:port`      - Write metrics to a UDP socket.
      *
      * The output location can be overridden by configuring an environment variable SPECTATOR_OUTPUT_LOCATION
      * with one of the values listed above. Overriding the output location may be useful for integration testing.
+     *
+     * Unix Domain Sockets are not supported in this library, because Node.js removed the `unix_dgram` package
+     * from the standard library in 2011, as a part of portability concerns for Windows.
+     *
+     * https://github.com/nodejs/node/issues/29339
+     *
+     * There is a third-party `unix-dgram` library, but it contains C++ source code, which complicates the build,
+     * and it introduces synchronous calls in the context of callbacks. We want this library to be as low-friction
+     * as possible, so we will not adopt this package. If you need UDS support, use the C++, Go, or Python libraries
+     * instead.
+     *
+     * https://github.com/bnoordhuis/node-unix-dgram
      */
 
     location: string;
