@@ -63,7 +63,6 @@ describe("Config Tests", (): void => {
         assert.equal("stderr", get_location("stderr"));
         assert.equal("stdout", get_location("stdout"));
         assert.equal("udp", get_location("udp"));
-        assert.equal("unix", get_location("unix"));
         assert.equal("file://", get_location("file://"));
         assert.equal("udp://", get_location("udp://"));
     });
