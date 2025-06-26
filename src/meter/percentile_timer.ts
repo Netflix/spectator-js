@@ -18,20 +18,24 @@ export class PercentileTimer extends Meter {
     }
 
     /**
-     * @param {number|number[]} seconds
-     *     Number of seconds, which may be fractional, or an array of two numbers [seconds, nanoseconds],
-     *     which is the return value from process.hrtime(), and serves as a convenient means of recording
-     *     latency durations.
+     * @param {number|number[]|bigint} seconds
+     *     Number of seconds, which may be:
+     *
+     *     - Integer or fractional seconds.
+     *     - An array of two numbers [seconds, nanoseconds], which is the return value from
+     *     process.hrtime(), and serves as a convenient means of recording latency durations.
+     *     - A bigint, which should be in nanoseconds.
      *
      *     start = process.hrtime();
      *     // do work
-     *     registry.pct_timer("eventLatency").record(process.hrtime(start));
-     *
+     *     registry.timer("eventLatency").record(process.hrtime(start));
      */
-    record(seconds: number | number[]): Promise<void> {
+    record(seconds: number | number[] | bigint): Promise<void> {
         let elapsed: number;
 
-        if (seconds instanceof Array) {
+        if (typeof seconds === 'bigint') {
+            elapsed = Number(seconds) / 1e9;
+        } else if (seconds instanceof Array) {
             elapsed = seconds[0] + (seconds[1] / 1e9);
         } else {
             elapsed = seconds;
