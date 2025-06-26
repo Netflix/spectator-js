@@ -28,7 +28,7 @@ export class PercentileTimer extends Meter {
      *
      *     start = process.hrtime();
      *     // do work
-     *     registry.timer("eventLatency").record(process.hrtime(start));
+     *     registry.pct_timer("eventLatency").record(process.hrtime(start));
      */
     record(seconds: number | number[] | bigint): Promise<void> {
         let elapsed: number;
