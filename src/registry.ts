@@ -32,6 +32,10 @@ export class Registry {
         this.logger.debug(`Create Registry with extra_common_tags=${tags_toString(this._config.extra_common_tags)}`);
     }
 
+    config(): Config {
+        return this._config;
+    }
+
     writer(): WriterUnion {
         return this._writer;
     }
