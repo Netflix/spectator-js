@@ -25,12 +25,12 @@ export class Id {
 
     private INVALID_CHARS: RegExp = new RegExp(/[^-._A-Za-z0-9~^]/g);
 
-    private readonly _logger: Logger;
+    private readonly _logger: Logger<string>;
     private readonly _name: string;
     private readonly _tags: Tags;
     public spectatord_id: string;
 
-    constructor(name: string, tags?: Tags, logger?: Logger) {
+    constructor(name: string, tags?: Tags, logger?: Logger<string>) {
         // initialization order in this constructor matters, for logging and testing purposes
         if (logger == undefined) {
             this._logger = get_logger();

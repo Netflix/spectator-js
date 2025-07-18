@@ -15,7 +15,7 @@ export function is_valid_output_location(location: string): boolean {
         location.startsWith("udp://");
 }
 
-export function new_writer(location: string, logger?: Logger): WriterUnion {
+export function new_writer(location: string, logger?: Logger<string>): WriterUnion {
     /**
      * Create a new Writer based on an output location.
      */
