@@ -7,17 +7,17 @@ const levels: Record<string, number> = {
     fatal: 60
 };
 
-export type Logger<T extends string | number | symbol> = {
-    trace: (message: T) => void;
-    debug: (message: T) => void;
-    info: (message: T) => void;
-    warn: (message: T) => void;
-    error: (message: T) => void;
-    fatal: (message: T) => void;
+export type Logger<T extends string | never = string> = {
+    trace: (message: string) => void;
+    debug: (message: string) => void;
+    info: (message: string) => void;
+    warn: (message: string) => void;
+    error: (message: string) => void;
+    fatal: (message: string) => void;
     [key: string]: (message: T) => void;
 };
 
-export function get_logger(level_name?: string): Logger<string> {
+export function get_logger(level_name?: string): Logger {
     let level_filter: number;
     if (level_name == undefined || !(level_name in levels)) {
         level_filter = levels.info;
@@ -25,7 +25,7 @@ export function get_logger(level_name?: string): Logger<string> {
         level_filter = levels[level_name];
     }
 
-    const logger: Logger<string> = {
+    const logger: Logger = {
         is_level_enabled: (name: string) => levels[name] >= level_filter,
         trace: function (): void {
             throw new Error("Function not implemented.");

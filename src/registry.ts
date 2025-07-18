@@ -20,7 +20,7 @@ export class Registry {
      * Registry is the main entry point for interacting with the Spectator library.
      */
 
-    public logger: Logger<string>;
+    public logger: Logger;
 
     private _config: Config;
     private readonly _writer: WriterUnion;

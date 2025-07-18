@@ -39,9 +39,9 @@ export class Config {
 
     location: string;
     extra_common_tags: Tags;
-    logger: Logger<string>;
+    logger: Logger;
 
-    constructor(location: string = "udp", extra_common_tags: Tags = {}, logger: Logger<string> = get_logger()) {
+    constructor(location: string = "udp", extra_common_tags: Tags = {}, logger: Logger = get_logger()) {
         this.location = this.calculate_location(location);
         this.extra_common_tags = this.calculate_extra_common_tags(extra_common_tags);
         this.logger = logger;
