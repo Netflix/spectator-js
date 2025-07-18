@@ -7,7 +7,16 @@ const levels: Record<string, number> = {
     fatal: 60
 };
 
-export type Logger = Record<string, ((name: string) => boolean) | (() => void)>;
+export interface Logger {
+    is_level_enabled: (name: string) => boolean;
+    trace: (message: string) => void;
+    debug: (message: string) => void;
+    info: (message: string) => void;
+    warn: (message: string) => void;
+    error: (message: string) => void;
+    fatal: (message: string) => void;
+    [key: string]: (message: string) => void;
+}
 
 export function get_logger(level_name?: string): Logger {
     let level_filter: number;
@@ -18,7 +27,25 @@ export function get_logger(level_name?: string): Logger {
     }
 
     const logger: Logger = {
-        is_level_enabled: (name: string) => levels[name] >= level_filter
+        is_level_enabled: (name: string) => levels[name] >= level_filter,
+        trace: function (): void {
+            throw new Error("Function not implemented.");
+        },
+        debug: function (): void {
+            throw new Error("Function not implemented.");
+        },
+        info: function (): void {
+            throw new Error("Function not implemented.");
+        },
+        warn: function (): void {
+            throw new Error("Function not implemented.");
+        },
+        error: function (): void {
+            throw new Error("Function not implemented.");
+        },
+        fatal: function (): void {
+            throw new Error("Function not implemented.");
+        }
     };
 
     for (const name in levels) {
