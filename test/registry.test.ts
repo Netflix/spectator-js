@@ -37,6 +37,12 @@ describe("Registry Tests", (): void => {
         assert.isTrue(r.writer() instanceof UdpWriter);
     });
 
+    it("get config", (): void => {
+        const r = new Registry();
+        assert.equal("udp", r.config().location)
+        assert.deepEqual({}, r.config().extra_common_tags)
+    });
+
     it("age_gauge", (): void => {
         const r = new Registry(new Config("memory"));
         const writer = r.writer() as MemoryWriter;
