@@ -8,7 +8,6 @@ const levels: Record<string, number> = {
 };
 
 export interface Logger {
-    is_level_enabled: (name: string) => boolean;
     trace: (message: string) => void;
     debug: (message: string) => void;
     info: (message: string) => void;
