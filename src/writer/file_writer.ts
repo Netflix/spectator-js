@@ -10,7 +10,7 @@ export class FileWriter extends Writer {
 
     private readonly _location: string;
 
-    constructor(location: string, logger: Logger = get_logger()) {
+    constructor(location: string, logger: Logger<string> = get_logger()) {
         super(logger);
         // convert from URL string to PathLike string
         this._location = fileURLToPath(location);

@@ -13,7 +13,7 @@ export class MemoryWriter extends Writer {
 
     private _messages: string[];
 
-    constructor(logger: Logger = get_logger()) {
+    constructor(logger: Logger<string> = get_logger()) {
         super(logger);
         this._logger.debug("initialize MemoryWriter");
         this._messages = [];

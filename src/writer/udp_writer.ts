@@ -13,7 +13,7 @@ export class UdpWriter extends Writer {
     private readonly _family: SocketType;
     private _socket: Socket;
 
-    constructor(location: string, address: string, port: number, logger: Logger = get_logger()) {
+    constructor(location: string, address: string, port: number, logger: Logger<string> = get_logger()) {
         super(logger);
         this._logger.debug(`initialize UdpWriter to ${location}`);
         this._address = address;

@@ -6,7 +6,7 @@ export class NoopWriter extends Writer {
      * Writer that does nothing. Used to disable output.
      */
 
-    constructor(logger: Logger = get_logger()) {
+    constructor(logger: Logger<string> = get_logger()) {
         super(logger);
         this._logger.debug("initialize NoopWriter");
     }
