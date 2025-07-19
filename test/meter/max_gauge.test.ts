@@ -14,4 +14,13 @@ describe("MaxGauge Tests", (): void => {
         g.set(0);
         assert.equal("m:max_gauge:0", writer.last_line());
     });
+
+    it("update delegates to set", (): void => {
+        const g = new MaxGauge(tid, new MemoryWriter());
+        const writer = g.writer() as MemoryWriter;
+        assert.isTrue(writer.is_empty());
+
+        g.update(0);
+        assert.equal("m:max_gauge:0", writer.last_line());
+    });
 });

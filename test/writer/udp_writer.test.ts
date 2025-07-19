@@ -54,7 +54,7 @@ describe("UdpWriter Tests", (): void => {
         assert.equal(messages[0], "c:server.numRequests,id=failed:1");
         assert.equal(messages[1], "c:server.numRequests,id=failed:2");
 
-        messages.length = 0;
+        messages.length = 0;  // clear server messages
     });
 
     it("using registry", async (): Promise<void> => {
@@ -69,6 +69,8 @@ describe("UdpWriter Tests", (): void => {
         assert.equal(messages.length, 2);
         assert.equal(messages[0], "c:server.numRequests,id=success:1");
         assert.equal(messages[1], "c:server.numRequests,id=success:2");
+
+        messages.length = 0;  // clear server messages
     });
 
     it("address family", (): void => {

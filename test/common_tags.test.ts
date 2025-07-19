@@ -60,7 +60,7 @@ describe("Common Tags Tests", (): void => {
     });
 
     it("validate tags skips zero length strings", (): void => {
-        const tags = {"a": "", "": "b", "c": "1"};
-        assert.deepEqual({"c": "1"}, validate_tags(tags));
+        const tags = {"a": "", "": "b", "cc": "1"};
+        assert.deepEqual({"cc": "1"}, validate_tags(tags));
     });
 });

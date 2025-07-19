@@ -16,4 +16,8 @@ export class MaxGauge extends Meter {
         const line = `${this._meter_type_symbol}:${this._id.spectatord_id}:${value}`
         return this._writer.write(line);
     }
+
+    update(value: number): Promise<void> {
+        return this.set(value);
+    }
 }

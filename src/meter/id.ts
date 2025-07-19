@@ -3,7 +3,11 @@ import {validate_tags} from "../common_tags.js";
 
 export type Tags = Record<string, string>;
 
-export function tags_toString(tags: Tags): string {
+export function tags_toString(tags: Tags | undefined): string {
+    if (!tags) {
+        return "{}"
+    }
+
     let result: string = "{";
 
     if (Object.entries(tags).length > 0) {
@@ -28,6 +32,8 @@ export class Id {
     private readonly _logger: Logger;
     private readonly _name: string;
     private readonly _tags: Tags;
+
+    public invalid: boolean = false;
     public spectatord_id: string;
 
     constructor(name: string, tags?: Tags, logger?: Logger) {
@@ -43,18 +49,19 @@ export class Id {
         if (tags == undefined) {
             this._tags = {}
         } else {
-            this._tags = this.validate_tags(tags);
+            this._tags = this.validate_tags_for_id(tags);
         }
 
         this.spectatord_id = this.to_spectatord_id(this._name, this._tags);
     }
 
-    private validate_tags(tags: Tags): Tags {
+    private validate_tags_for_id(tags: Tags): Tags {
         const valid_tags: Record<string, string> = validate_tags(tags);
 
         if (Object.entries(tags).length != Object.entries(valid_tags).length) {
-            this._logger.warn(`Id(name=${this._name}, tags=${tags_toString(tags)}) is invalid due to tag keys or values which are ` +
-            `zero-length strings; proceeding with truncated tags Id(name=${this._name}, tags=${tags_toString(valid_tags)})`);
+            this._logger.warn(`Id(name=${this._name}, tags=${tags_toString(tags)}) is invalid due to tag keys or ` +
+            `values which are too short (k < 2, v < 1), or too long (k > 60, v > 120); proceeding with truncated ` +
+            `tags Id(name=${this._name}, tags=${tags_toString(valid_tags)})`);
         }
 
         return valid_tags;
@@ -65,6 +72,14 @@ export class Id {
     }
 
     private to_spectatord_id(name: string, tags?: Tags): string {
+        // javascript and length protection check
+        if (typeof name !== "string" || name.length < 2 || name.length > 255) {
+            this._logger.warn(`Id(name=${name}, tags=${tags_toString(tags)}) is invalid, because the name is not a string, ` +
+                `it is too short (< 2), or it is too long (> 255); metric will not be reported`);
+            this.invalid = true;
+            return '';
+        }
+
         if (tags == undefined) {
             tags = {};
         }

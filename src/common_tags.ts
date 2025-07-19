@@ -30,7 +30,9 @@ export function validate_tags(tags: Record<string, string>): Record<string, stri
 
     for (const key in tags) {
         const val = tags[key];
-        if (key.length == 0 || val.length == 0) continue;
+        // javascript protection check
+        if (typeof key !== "string" || typeof val !== "string") continue;
+        if (key.length < 2 || key.length > 60 || val.length < 1 || val.length > 120) continue;
         valid_tags[key] = val;
     }
 
