@@ -1,14 +1,14 @@
 import {assert} from "chai";
 import {get_logger, Logger} from "../../src/index.js";
 import {describe, it} from "node:test";
-import { pino } from 'pino';
+import {pino} from 'pino';
 import {once, sink} from 'pino-test';
 
 describe("Logger Tests", (): void => {
 
     it("integrate with pino", async (): Promise<void> => {
         const stream = sink();
-        const log: Logger = pino({level: 'trace'}, stream);
+        const log: Logger = pino({level: 'trace'}, stream) as Logger;
 
         log.trace("trace");
         await once(stream, {level: 10, msg: 'trace'});
