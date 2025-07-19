@@ -21,3 +21,8 @@ test:
 .PHONY: coverage
 coverage:
 	npm run test-with-coverage
+
+## lint: run test-with-coverage
+.PHONY: lint
+lint:
+	npm run lint

@@ -66,13 +66,20 @@ describe("Registry Tests", (): void => {
         const r = new Registry(new Config("memory"));
         const writer = r.writer() as MemoryWriter;
 
-        const g: AgeGauge = r.age_gauge("g");
+        const g1: AgeGauge = r.age_gauge("g");
         assert.isTrue(writer.is_empty());
 
-        g.set(1);
+        g1.set(1);
+        assert.isTrue(writer.is_empty());
+
+        const g2: AgeGauge = r.age_gauge_with_id(r.new_id("g"));
+        assert.isTrue(writer.is_empty());
+
+        g2.set(1);
         assert.isTrue(writer.is_empty());
 
         const expected: string[] = [
+            "WARN: Id(name=g, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
             "WARN: Id(name=g, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
         assert.deepEqual(expected, messages);
@@ -122,13 +129,20 @@ describe("Registry Tests", (): void => {
         const r = new Registry(new Config("memory"));
         const writer = r.writer() as MemoryWriter;
 
-        const c: Counter = r.counter("c");
+        const c1: Counter = r.counter("c");
         assert.isTrue(writer.is_empty());
 
-        c.increment();
+        c1.increment();
+        assert.isTrue(writer.is_empty());
+
+        const c2: Counter = r.counter_with_id(r.new_id("c"));
+        assert.isTrue(writer.is_empty());
+
+        c2.increment();
         assert.isTrue(writer.is_empty());
 
         const expected: string[] = [
+            "WARN: Id(name=c, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
             "WARN: Id(name=c, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
         assert.deepEqual(expected, messages);
@@ -171,13 +185,20 @@ describe("Registry Tests", (): void => {
         const r = new Registry(new Config("memory"));
         const writer = r.writer() as MemoryWriter;
 
-        const d: DistributionSummary = r.distribution_summary("d");
+        const d1: DistributionSummary = r.distribution_summary("d");
         assert.isTrue(writer.is_empty());
 
-        d.record(42);
+        d1.record(42);
+        assert.isTrue(writer.is_empty());
+
+        const d2: DistributionSummary = r.distribution_summary_with_id(r.new_id("d"));
+        assert.isTrue(writer.is_empty());
+
+        d2.record(42);
         assert.isTrue(writer.is_empty());
 
         const expected: string[] = [
+            "WARN: Id(name=d, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
             "WARN: Id(name=d, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
         assert.deepEqual(expected, messages);
@@ -214,13 +235,20 @@ describe("Registry Tests", (): void => {
         const r = new Registry(new Config("memory"));
         const writer = r.writer() as MemoryWriter;
 
-        const g: Gauge = r.gauge("g");
+        const g1: Gauge = r.gauge("g");
         assert.isTrue(writer.is_empty());
 
-        g.set(42);
+        g1.set(42);
+        assert.isTrue(writer.is_empty());
+
+        const g2: Gauge = r.gauge_with_id(r.new_id("g"));
+        assert.isTrue(writer.is_empty());
+
+        g2.set(42);
         assert.isTrue(writer.is_empty());
 
         const expected: string[] = [
+            "WARN: Id(name=g, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
             "WARN: Id(name=g, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
         assert.deepEqual(expected, messages);
@@ -279,13 +307,20 @@ describe("Registry Tests", (): void => {
         const r = new Registry(new Config("memory"));
         const writer = r.writer() as MemoryWriter;
 
-        const g: MaxGauge = r.max_gauge("g");
+        const g1: MaxGauge = r.max_gauge("g");
         assert.isTrue(writer.is_empty());
 
-        g.set(42);
+        g1.set(42);
+        assert.isTrue(writer.is_empty());
+
+        const g2: MaxGauge = r.max_gauge_with_id(r.new_id("g"));
+        assert.isTrue(writer.is_empty());
+
+        g2.set(42);
         assert.isTrue(writer.is_empty());
 
         const expected: string[] = [
+            "WARN: Id(name=g, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
             "WARN: Id(name=g, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
         assert.deepEqual(expected, messages);
@@ -322,13 +357,20 @@ describe("Registry Tests", (): void => {
         const r = new Registry(new Config("memory"));
         const writer = r.writer() as MemoryWriter;
 
-        const c: MonotonicCounter = r.monotonic_counter("c");
+        const c1: MonotonicCounter = r.monotonic_counter("c");
         assert.isTrue(writer.is_empty());
 
-        c.set(42);
+        c1.set(42);
+        assert.isTrue(writer.is_empty());
+
+        const c2: MonotonicCounter = r.monotonic_counter_with_id(r.new_id("c"));
+        assert.isTrue(writer.is_empty());
+
+        c2.set(42);
         assert.isTrue(writer.is_empty());
 
         const expected: string[] = [
+            "WARN: Id(name=c, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
             "WARN: Id(name=c, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
         assert.deepEqual(expected, messages);
@@ -365,13 +407,20 @@ describe("Registry Tests", (): void => {
         const r = new Registry(new Config("memory"));
         const writer = r.writer() as MemoryWriter;
 
-        const c: MonotonicCounterUint = r.monotonic_counter_uint("c");
+        const c1: MonotonicCounterUint = r.monotonic_counter_uint("c");
         assert.isTrue(writer.is_empty());
 
-        c.set(BigInt(42));
+        c1.set(BigInt(42));
+        assert.isTrue(writer.is_empty());
+
+        const c2: MonotonicCounterUint = r.monotonic_counter_uint_with_id(r.new_id("c"));
+        assert.isTrue(writer.is_empty());
+
+        c2.set(BigInt(42));
         assert.isTrue(writer.is_empty());
 
         const expected: string[] = [
+            "WARN: Id(name=c, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
             "WARN: Id(name=c, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
         assert.deepEqual(expected, messages);
@@ -418,13 +467,20 @@ describe("Registry Tests", (): void => {
         const r = new Registry(new Config("memory"));
         const writer = r.writer() as MemoryWriter;
 
-        const d: PercentileDistributionSummary = r.pct_distribution_summary("d");
+        const d1: PercentileDistributionSummary = r.pct_distribution_summary("d");
         assert.isTrue(writer.is_empty());
 
-        d.record(42);
+        d1.record(42);
+        assert.isTrue(writer.is_empty());
+
+        const d2: PercentileDistributionSummary = r.pct_distribution_summary_with_id(r.new_id("d"));
+        assert.isTrue(writer.is_empty());
+
+        d2.record(42);
         assert.isTrue(writer.is_empty());
 
         const expected: string[] = [
+            "WARN: Id(name=d, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
             "WARN: Id(name=d, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
         assert.deepEqual(expected, messages);
@@ -461,13 +517,20 @@ describe("Registry Tests", (): void => {
         const r = new Registry(new Config("memory"));
         const writer = r.writer() as MemoryWriter;
 
-        const t: PercentileTimer = r.pct_timer("t");
+        const t1: PercentileTimer = r.pct_timer("t");
         assert.isTrue(writer.is_empty());
 
-        t.record(42);
+        t1.record(42);
+        assert.isTrue(writer.is_empty());
+
+        const t2: PercentileTimer = r.pct_timer_with_id(r.new_id("t"));
+        assert.isTrue(writer.is_empty());
+
+        t2.record(42);
         assert.isTrue(writer.is_empty());
 
         const expected: string[] = [
+            "WARN: Id(name=t, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
             "WARN: Id(name=t, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
         assert.deepEqual(expected, messages);
@@ -504,13 +567,20 @@ describe("Registry Tests", (): void => {
         const r = new Registry(new Config("memory"));
         const writer = r.writer() as MemoryWriter;
 
-        const t: Timer = r.timer("t");
+        const t1: Timer = r.timer("t");
         assert.isTrue(writer.is_empty());
 
-        t.record(42);
+        t1.record(42);
+        assert.isTrue(writer.is_empty());
+
+        const t2: Timer = r.timer_with_id(r.new_id("t"));
+        assert.isTrue(writer.is_empty());
+
+        t2.record(42);
         assert.isTrue(writer.is_empty());
 
         const expected: string[] = [
+            "WARN: Id(name=t, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
             "WARN: Id(name=t, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
         assert.deepEqual(expected, messages);
