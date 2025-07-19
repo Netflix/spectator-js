@@ -7,14 +7,14 @@ const levels: Record<string, number> = {
     fatal: 60
 };
 
-export type Logger<T extends string | never = string> = {
+export type Logger = {
     trace: (message: string) => void;
     debug: (message: string) => void;
     info: (message: string) => void;
     warn: (message: string) => void;
     error: (message: string) => void;
     fatal: (message: string) => void;
-    [key: string]: (message: T) => void;
+    [key: string]: (message: string) => void;
 };
 
 export function get_logger(level_name?: string): Logger {
