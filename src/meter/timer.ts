@@ -13,6 +13,7 @@ export class Timer extends Meter {
 
     /**
      * @param {number|number[]|bigint} seconds
+     *
      *     Number of seconds, which may be:
      *
      *     - Integer or fractional seconds.
@@ -23,8 +24,11 @@ export class Timer extends Meter {
      *     start = process.hrtime();
      *     // do work
      *     registry.timer("eventLatency").record(process.hrtime(start));
+     *
+     * @param {number} nanos Optional nanoseconds, as if recording values extracted from process.hrtime(). This
+     * variation should be paired with the first parameter representing seconds.
      */
-    record(seconds: number | number[] | bigint): Promise<void> {
+    record(seconds: number | number[] | bigint, nanos?: number): Promise<void> {
         let elapsed: number;
 
         if (typeof seconds === 'bigint') {
@@ -32,7 +36,8 @@ export class Timer extends Meter {
         } else if (seconds instanceof Array) {
             elapsed = seconds[0] + (seconds[1] / 1e9);
         } else {
-            elapsed = seconds;
+            nanos = nanos || 0;
+            elapsed = seconds + (nanos / 1e9);
         }
 
         if (elapsed >= 0) {

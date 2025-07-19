@@ -26,7 +26,7 @@ export function get_logger(level_name?: string): Logger {
     }
 
     const logger: Logger = {
-        is_level_enabled: (name: string) => levels[name] >= level_filter,
+        is_level_enabled: (name: string): boolean => levels[name] >= level_filter,
         trace: function (): void {
             throw new Error("Function not implemented.");
         },

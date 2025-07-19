@@ -29,6 +29,13 @@ describe("PercentileTimer Tests", (): void => {
         assert.equal("T:percentile_timer:0", writer.last_line());
     });
 
+    it("record bigint nanoseconds", (): void => {
+        const t = new PercentileTimer(tid, new MemoryWriter());
+        const writer = t.writer() as MemoryWriter;
+        t.record(BigInt(1e9));
+        assert.equal("T:percentile_timer:1", writer.last_line());
+    });
+
     it("record latency from hrtime", (): void => {
         let nanos: number = 0;
         let round: number = 1;
@@ -49,6 +56,10 @@ describe("PercentileTimer Tests", (): void => {
         const writer = t.writer() as MemoryWriter;
         t.record(process.hrtime(start));  // two calls to hrtime = 1ms + 2ms = 3ms
         assert.equal("T:percentile_timer:0.003", writer.last_line());
+
+        const [seconds, nanoseconds] = process.hrtime(start);
+        t.record(seconds, nanoseconds);  // three calls to hrtime = 1ms + 2ms + 3ms = 6ms
+        assert.equal("T:percentile_timer:0.006", writer.last_line());
 
         Object.defineProperty(process, "hrtime", f);
     });

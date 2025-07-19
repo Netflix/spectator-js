@@ -13,6 +13,7 @@ import {PercentileDistributionSummary} from "./meter/percentile_dist_summary.js"
 import {PercentileTimer} from "./meter/percentile_timer.js";
 import {Timer} from "./meter/timer.js";
 import {new_writer, WriterUnion} from "./writer/new_writer.js";
+import {NoopWriter} from "./writer/noop_writer.js";
 
 
 export class Registry {
@@ -69,7 +70,11 @@ export class Registry {
     }
 
     age_gauge(name: string, tags: Tags = {}): AgeGauge {
-        return new AgeGauge(this.new_id(name, tags), this._writer);
+        const id = this.new_id(name, tags);
+        if (id.invalid) {
+            return new AgeGauge(id, new NoopWriter());
+        }
+        return new AgeGauge(id, this._writer);
     }
 
     age_gauge_with_id(id: Id): AgeGauge {
@@ -77,7 +82,11 @@ export class Registry {
     }
 
     counter(name: string, tags: Tags = {}): Counter {
-        return new Counter(this.new_id(name, tags), this._writer);
+        const id = this.new_id(name, tags);
+        if (id.invalid) {
+            return new Counter(id, new NoopWriter());
+        }
+        return new Counter(id, this._writer);
     }
 
     counter_with_id(id: Id): Counter {
@@ -85,7 +94,11 @@ export class Registry {
     }
 
     distribution_summary(name: string, tags: Tags = {}): DistributionSummary {
-        return new DistributionSummary(this.new_id(name, tags), this._writer);
+        const id = this.new_id(name, tags);
+        if (id.invalid) {
+            return new DistributionSummary(id, new NoopWriter());
+        }
+        return new DistributionSummary(id, this._writer);
     }
 
     distribution_summary_with_id(id: Id): DistributionSummary {
@@ -93,7 +106,11 @@ export class Registry {
     }
 
     gauge(name: string, tags: Tags = {}, ttl_seconds?: number): Gauge {
-        return new Gauge(this.new_id(name, tags), this._writer, ttl_seconds);
+        const id = this.new_id(name, tags);
+        if (id.invalid) {
+            return new Gauge(id, new NoopWriter(), ttl_seconds);
+        }
+        return new Gauge(id, this._writer, ttl_seconds);
     }
 
     gauge_with_id(id: Id, ttl_seconds?: number): Gauge {
@@ -101,7 +118,11 @@ export class Registry {
     }
 
     max_gauge(name: string, tags: Tags = {}): MaxGauge {
-        return new MaxGauge(this.new_id(name, tags), this._writer);
+        const id = this.new_id(name, tags);
+        if (id.invalid) {
+            return new MaxGauge(id, new NoopWriter());
+        }
+        return new MaxGauge(id, this._writer);
     }
 
     max_gauge_with_id(id: Id): MaxGauge {
@@ -109,7 +130,11 @@ export class Registry {
     }
 
     monotonic_counter(name: string, tags: Tags = {}): MonotonicCounter {
-        return new MonotonicCounter(this.new_id(name, tags), this._writer);
+        const id = this.new_id(name, tags);
+        if (id.invalid) {
+            return new MonotonicCounter(id, new NoopWriter());
+        }
+        return new MonotonicCounter(id, this._writer);
     }
 
     monotonic_counter_with_id(id: Id): MonotonicCounter {
@@ -117,7 +142,11 @@ export class Registry {
     }
 
     monotonic_counter_uint(name: string, tags: Tags = {}): MonotonicCounterUint {
-        return new MonotonicCounterUint(this.new_id(name, tags), this._writer);
+        const id = this.new_id(name, tags);
+        if (id.invalid) {
+            return new MonotonicCounterUint(id, new NoopWriter());
+        }
+        return new MonotonicCounterUint(id, this._writer);
     }
 
     monotonic_counter_uint_with_id(id: Id): MonotonicCounterUint {
@@ -125,7 +154,11 @@ export class Registry {
     }
 
     pct_distribution_summary(name: string, tags: Tags = {}): PercentileDistributionSummary {
-        return new PercentileDistributionSummary(this.new_id(name, tags), this._writer);
+        const id = this.new_id(name, tags);
+        if (id.invalid) {
+            return new PercentileDistributionSummary(id, new NoopWriter());
+        }
+        return new PercentileDistributionSummary(id, this._writer);
     }
 
     pct_distribution_summary_with_id(id: Id): PercentileDistributionSummary {
@@ -133,7 +166,11 @@ export class Registry {
     }
 
     pct_timer(name: string, tags: Tags = {}): PercentileTimer {
-        return new PercentileTimer(this.new_id(name, tags), this._writer);
+        const id = this.new_id(name, tags);
+        if (id.invalid) {
+            return new PercentileTimer(id, new NoopWriter());
+        }
+        return new PercentileTimer(id, this._writer);
     }
 
     pct_timer_with_id(id: Id): PercentileTimer {
@@ -141,7 +178,11 @@ export class Registry {
     }
 
     timer(name: string, tags: Tags = {}): Timer {
-        return new Timer(this.new_id(name, tags), this._writer);
+        const id = this.new_id(name, tags);
+        if (id.invalid) {
+            return new Timer(id, new NoopWriter());
+        }
+        return new Timer(id, this._writer);
     }
 
     timer_with_id(id: Id): Timer {

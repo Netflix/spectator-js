@@ -15,6 +15,15 @@ describe("Gauge Tests", (): void => {
         assert.equal("g:gauge:1", writer.last_line());
     });
 
+    it("update delegates to set", (): void => {
+        const g = new Gauge(tid, new MemoryWriter());
+        const writer = g.writer() as MemoryWriter;
+        assert.isTrue(writer.is_empty());
+
+        g.update(1);
+        assert.equal("g:gauge:1", writer.last_line());
+    });
+
     it("ttl_seconds", (): void => {
         const g = new Gauge(tid, new MemoryWriter(), 120);
         const writer = g.writer() as MemoryWriter;
