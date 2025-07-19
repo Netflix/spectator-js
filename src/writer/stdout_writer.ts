@@ -6,7 +6,7 @@ export class StdoutWriter extends Writer {
      * Writer that outputs data to stdout.
      */
 
-    constructor(logger: Logger<string> = get_logger()) {
+    constructor(logger: Logger = get_logger()) {
         super(logger);
         this._logger.debug("initialize StdoutWriter");
     }

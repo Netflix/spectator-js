@@ -6,7 +6,7 @@ export class StderrWriter extends Writer {
      * Writer that outputs data to stderr.
      */
 
-    constructor(logger: Logger<string> = get_logger()) {
+    constructor(logger: Logger = get_logger()) {
         super(logger);
         this._logger.debug("initialize StderrWriter");
     }

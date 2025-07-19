@@ -1,9 +1,9 @@
 import {Logger} from "../logger/logger.js";
 
 export abstract class Writer {
-    protected _logger: Logger<string>;
+    protected _logger: Logger;
 
-    protected constructor(logger: Logger<string>) {
+    protected constructor(logger: Logger) {
         this._logger = logger;
     }
 
