@@ -12,7 +12,7 @@ describe("MaxGauge Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         g.set(0);
-        assert.equal("m:max_gauge:0", writer.last_line());
+        assert.equal(writer.last_line(), "m:max_gauge:0");
     });
 
     it("update delegates to set", (): void => {
@@ -21,6 +21,6 @@ describe("MaxGauge Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         g.update(0);
-        assert.equal("m:max_gauge:0", writer.last_line());
+        assert.equal(writer.last_line(), "m:max_gauge:0");
     });
 });

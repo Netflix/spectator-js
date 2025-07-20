@@ -12,7 +12,7 @@ describe("Gauge Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         g.set(1);
-        assert.equal("g:gauge:1", writer.last_line());
+        assert.equal(writer.last_line(), "g:gauge:1");
     });
 
     it("update delegates to set", (): void => {
@@ -21,13 +21,13 @@ describe("Gauge Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         g.update(1);
-        assert.equal("g:gauge:1", writer.last_line());
+        assert.equal(writer.last_line(), "g:gauge:1");
     });
 
     it("ttl_seconds", (): void => {
         const g = new Gauge(tid, new MemoryWriter(), 120);
         const writer = g.writer() as MemoryWriter;
         g.set(42);
-        assert.equal("g,120:gauge:42", writer.last_line());
+        assert.equal(writer.last_line(), "g,120:gauge:42");
     });
 });

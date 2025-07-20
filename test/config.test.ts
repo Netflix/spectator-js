@@ -32,14 +32,14 @@ describe("Config Tests", (): void => {
         setup_environment();
         const config = new Config();
         assert.deepEqual(all_expected_tags(), config.extra_common_tags);
-        assert.equal("udp", config.location);
+        assert.equal(config.location, "udp");
         clear_environment();
     });
 
     it("env location override", (): void => {
         process.env.SPECTATOR_OUTPUT_LOCATION = "memory";
         const config = new Config();
-        assert.equal("memory", config.location);
+        assert.equal(config.location, "memory");
         clear_environment();
     });
 
@@ -52,19 +52,19 @@ describe("Config Tests", (): void => {
     it("extra common tags", (): void => {
         setup_environment();
         const config = new Config(undefined, {"extra-tag": "foo"});
-        assert.equal("udp", config.location);
-        assert.deepEqual({"extra-tag": "foo", "nf.container": "main", "nf.process": "nodejs"}, config.extra_common_tags);
+        assert.equal(config.location, "udp");
+        assert.deepEqual(config.extra_common_tags, {"extra-tag": "foo", "nf.container": "main", "nf.process": "nodejs"});
         clear_environment();
     });
 
     it("valid output locations", (): void => {
-        assert.equal("none", get_location("none"));
-        assert.equal("memory", get_location("memory"));
-        assert.equal("stderr", get_location("stderr"));
-        assert.equal("stdout", get_location("stdout"));
-        assert.equal("udp", get_location("udp"));
-        assert.equal("file://", get_location("file://"));
-        assert.equal("udp://", get_location("udp://"));
+        assert.equal(get_location("none"), "none");
+        assert.equal(get_location("memory"), "memory");
+        assert.equal(get_location("stderr"), "stderr");
+        assert.equal(get_location("stdout"), "stdout");
+        assert.equal(get_location("udp"), "udp");
+        assert.equal(get_location("file://"), "file://");
+        assert.equal(get_location("udp://"), "udp://");
     });
 
     it("invalid output location throws", (): void => {

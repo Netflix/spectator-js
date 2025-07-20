@@ -12,7 +12,7 @@ describe("AgeGauge Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         g.now();
-        assert.equal("A:age_gauge:0", writer.last_line());
+        assert.equal(writer.last_line(), "A:age_gauge:0");
     });
 
     it("set", (): void => {
@@ -21,6 +21,6 @@ describe("AgeGauge Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         g.set(10);
-        assert.equal("A:age_gauge:10", writer.last_line());
+        assert.equal(writer.last_line(), "A:age_gauge:10");
     });
 });

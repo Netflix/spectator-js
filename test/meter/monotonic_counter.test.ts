@@ -12,7 +12,7 @@ describe("MonotonicCounter Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         c.set(1);
-        assert.equal("C:monotonic_counter:1", writer.last_line());
+        assert.equal(writer.last_line(), "C:monotonic_counter:1");
     });
 
     it("set negative", (): void => {
@@ -21,6 +21,6 @@ describe("MonotonicCounter Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         c.set(-1);
-        assert.equal("C:monotonic_counter:-1", writer.last_line());
+        assert.equal(writer.last_line(), "C:monotonic_counter:-1");
     });
 });

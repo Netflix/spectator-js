@@ -12,10 +12,10 @@ describe("Counter Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         c.add();
-        assert.equal("c:counter:1", writer.last_line());
+        assert.equal(writer.last_line(), "c:counter:1");
 
         c.add(2);
-        assert.equal("c:counter:2", writer.last_line());
+        assert.equal(writer.last_line(), "c:counter:2");
     });
 
     it("increment", (): void => {
@@ -24,10 +24,10 @@ describe("Counter Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         c.increment();
-        assert.equal("c:counter:1", writer.last_line());
+        assert.equal(writer.last_line(), "c:counter:1");
 
         c.increment(2);
-        assert.equal("c:counter:2", writer.last_line());
+        assert.equal(writer.last_line(), "c:counter:2");
     });
 
     it("increment negative", (): void => {
