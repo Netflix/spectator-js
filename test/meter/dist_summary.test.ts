@@ -12,7 +12,7 @@ describe("DistributionSummary Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         d.record(42);
-        assert.equal("d:dist_summary:42", writer.last_line());
+        assert.equal(writer.last_line(), "d:dist_summary:42");
     });
 
     it("record negative", (): void => {
@@ -26,6 +26,6 @@ describe("DistributionSummary Tests", (): void => {
         const d = new DistributionSummary(tid, new MemoryWriter());
         const writer = d.writer() as MemoryWriter;
         d.record(0);
-        assert.equal("d:dist_summary:0", writer.last_line());
+        assert.equal(writer.last_line(), "d:dist_summary:0");
     });
 });

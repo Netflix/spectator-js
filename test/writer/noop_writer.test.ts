@@ -13,12 +13,12 @@ describe("NoopWriter Tests", (): void => {
         noop_writer.write("c:counter:1");
         noop_writer.close();
 
-        const expected_messages: string[] = [
+        const expected: string[] = [
             "DEBUG: initialize NoopWriter",
             "DEBUG: write line=c:counter:1"
         ];
 
-        assert.deepEqual(expected_messages, messages);
+        assert.deepEqual(messages, expected);
         console.log = f;
     });
 });

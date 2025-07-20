@@ -62,7 +62,11 @@ describe("Logger Tests", (): void => {
         log.warn("stern warning");
         log.error("error message");
 
-        assert.deepEqual(["WARN: stern warning", "ERROR: error message"], messages);
+        const expected: string[] = [
+            "WARN: stern warning",
+            "ERROR: error message"
+        ];
+        assert.deepEqual(messages, expected);
         console.log = f;
     });
 });

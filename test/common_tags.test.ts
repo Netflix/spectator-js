@@ -26,7 +26,7 @@ describe("Common Tags Tests", (): void => {
 
     it("get tags from env vars", (): void => {
         setup_environment();
-        assert.deepEqual(all_expected_tags(), tags_from_env_vars());
+        assert.deepEqual(tags_from_env_vars(), all_expected_tags());
         clear_environment();
     });
 
@@ -36,7 +36,7 @@ describe("Common Tags Tests", (): void => {
 
         const expected_tags: Record<string, string> = all_expected_tags();
         delete expected_tags["nf.container"];
-        assert.deepEqual(expected_tags, tags_from_env_vars());
+        assert.deepEqual(tags_from_env_vars(), expected_tags);
 
         clear_environment();
     });
@@ -47,7 +47,7 @@ describe("Common Tags Tests", (): void => {
 
         const expected_tags: Record<string, string> = all_expected_tags();
         delete expected_tags["nf.container"];
-        assert.deepEqual(expected_tags, tags_from_env_vars());
+        assert.deepEqual(tags_from_env_vars(), expected_tags);
 
         clear_environment();
     });
@@ -55,12 +55,12 @@ describe("Common Tags Tests", (): void => {
     it("get tags from env vars with whitespace ignored", (): void => {
         setup_environment();
         process.env.TITUS_CONTAINER_NAME = "    main \t\t";
-        assert.deepEqual(all_expected_tags(), tags_from_env_vars());
+        assert.deepEqual(tags_from_env_vars(), all_expected_tags());
         clear_environment();
     });
 
     it("validate tags skips zero length strings", (): void => {
         const tags = {"a": "", "": "b", "cc": "1"};
-        assert.deepEqual({"cc": "1"}, validate_tags(tags));
+        assert.deepEqual(validate_tags(tags), {"cc": "1"});
     });
 });

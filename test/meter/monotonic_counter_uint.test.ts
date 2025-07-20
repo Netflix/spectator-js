@@ -12,7 +12,7 @@ describe("MonotonicCounterUint Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         c.set(BigInt(1));
-        assert.equal("U:monotonic_counter_uint:1", writer.last_line());
+        assert.equal(writer.last_line(), "U:monotonic_counter_uint:1");
     });
 
     it("set negative", (): void => {
@@ -21,6 +21,6 @@ describe("MonotonicCounterUint Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         c.set(BigInt(-1));
-        assert.equal("U:monotonic_counter_uint:18446744073709551615", writer.last_line());
+        assert.equal(writer.last_line(), "U:monotonic_counter_uint:18446744073709551615");
     });
 });

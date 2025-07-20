@@ -26,7 +26,7 @@ describe("Registry Tests", (): void => {
 
         const c: Counter = r.counter("counter");
         c.increment();
-        assert.equal("c:counter:1", writer.last_line());
+        assert.equal(writer.last_line(), "c:counter:1");
 
         r.close();
         assert.isTrue(writer.is_empty());
@@ -39,8 +39,8 @@ describe("Registry Tests", (): void => {
 
     it("get config", (): void => {
         const r = new Registry();
-        assert.equal("udp", r.config().location)
-        assert.deepEqual({}, r.config().extra_common_tags)
+        assert.equal(r.config().location, "udp", )
+        assert.deepEqual(r.config().extra_common_tags, {})
     });
 
     it("age_gauge", (): void => {
@@ -52,10 +52,10 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         g1.set(1);
-        assert.equal("A:age_gauge:1", writer.last_line());
+        assert.equal(writer.last_line(), "A:age_gauge:1");
 
         g2.set(2);
-        assert.equal("A:age_gauge,my-tags=bar:2", writer.last_line());
+        assert.equal(writer.last_line(), "A:age_gauge,my-tags=bar:2");
     });
 
     it("invalid age_gauge does not report", (): void => {
@@ -82,7 +82,7 @@ describe("Registry Tests", (): void => {
             "WARN: Id(name=g, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
             "WARN: Id(name=g, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
-        assert.deepEqual(expected, messages);
+        assert.deepEqual(messages, expected);
         console.log = f;
     });
 
@@ -94,7 +94,7 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         g.set(0);
-        assert.equal("A:age_gauge,extra-tags=foo,my-tags=bar:0", writer.last_line());
+        assert.equal(writer.last_line(), "A:age_gauge,extra-tags=foo,my-tags=bar:0");
     });
 
     it("counter", (): void => {
@@ -106,19 +106,19 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         c1.increment();
-        assert.equal("c:counter:1", writer.last_line());
+        assert.equal(writer.last_line(), "c:counter:1");
 
         c2.increment();
-        assert.equal("c:counter,my-tags=bar:1", writer.last_line());
+        assert.equal(writer.last_line(), "c:counter,my-tags=bar:1");
 
         c1.increment(2);
-        assert.equal("c:counter:2", writer.last_line());
+        assert.equal(writer.last_line(), "c:counter:2");
 
         c2.increment(2);
-        assert.equal("c:counter,my-tags=bar:2", writer.last_line());
+        assert.equal(writer.last_line(), "c:counter,my-tags=bar:2");
 
         r.counter("counter").increment(3);
-        assert.equal("c:counter:3", writer.last_line());
+        assert.equal(writer.last_line(), "c:counter:3");
     });
 
     it("invalid counter does not report", (): void => {
@@ -145,7 +145,7 @@ describe("Registry Tests", (): void => {
             "WARN: Id(name=c, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
             "WARN: Id(name=c, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
-        assert.deepEqual(expected, messages);
+        assert.deepEqual(messages, expected);
         console.log = f;
     });
 
@@ -157,13 +157,13 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         c.increment();
-        assert.equal("c:counter,extra-tags=foo,my-tags=bar:1", writer.last_line());
+        assert.equal(writer.last_line(), "c:counter,extra-tags=foo,my-tags=bar:1");
 
         c.increment(2);
-        assert.equal("c:counter,extra-tags=foo,my-tags=bar:2", writer.last_line());
+        assert.equal(writer.last_line(), "c:counter,extra-tags=foo,my-tags=bar:2");
 
         r.counter("counter", {"my-tags": "bar"}).increment(3);
-        assert.equal("c:counter,extra-tags=foo,my-tags=bar:3", writer.last_line());
+        assert.equal(writer.last_line(), "c:counter,extra-tags=foo,my-tags=bar:3");
     });
 
     it("distribution_summary", (): void => {
@@ -174,7 +174,7 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         d.record(42);
-        assert.equal("d:distribution_summary:42", writer.last_line());
+        assert.equal(writer.last_line(), "d:distribution_summary:42");
     });
 
     it("invalid distribution_summary does not report", (): void => {
@@ -201,7 +201,7 @@ describe("Registry Tests", (): void => {
             "WARN: Id(name=d, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
             "WARN: Id(name=d, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
-        assert.deepEqual(expected, messages);
+        assert.deepEqual(messages, expected);
         console.log = f;
     });
 
@@ -213,7 +213,7 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         d.record(42);
-        assert.equal("d:distribution_summary,extra-tags=foo,my-tags=bar:42", writer.last_line());
+        assert.equal(writer.last_line(), "d:distribution_summary,extra-tags=foo,my-tags=bar:42");
     });
 
     it("gauge", (): void => {
@@ -224,7 +224,7 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         g.set(42);
-        assert.equal("g:gauge:42", writer.last_line());
+        assert.equal(writer.last_line(), "g:gauge:42");
     });
 
     it("invalid gauge does not report", (): void => {
@@ -251,7 +251,7 @@ describe("Registry Tests", (): void => {
             "WARN: Id(name=g, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
             "WARN: Id(name=g, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
-        assert.deepEqual(expected, messages);
+        assert.deepEqual(messages, expected);
         console.log = f;
     });
 
@@ -263,7 +263,7 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         g.set(42);
-        assert.equal("g,120:gauge:42", writer.last_line());
+        assert.equal(writer.last_line(), "g,120:gauge:42");
     });
 
     it("gauge_with_id", (): void => {
@@ -274,7 +274,7 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         g.set(42);
-        assert.equal("g:gauge,extra-tags=foo,my-tags=bar:42", writer.last_line());
+        assert.equal(writer.last_line(), "g:gauge,extra-tags=foo,my-tags=bar:42");
     });
 
     it("gauge_with_id with ttl seconds", (): void => {
@@ -285,7 +285,7 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         g.set(42);
-        assert.equal("g,120:gauge,extra-tags=foo,my-tags=bar:42", writer.last_line());
+        assert.equal(writer.last_line(), "g,120:gauge,extra-tags=foo,my-tags=bar:42");
     });
 
     it("max_gauge", (): void => {
@@ -296,7 +296,7 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         g.set(42);
-        assert.equal("m:max_gauge:42", writer.last_line());
+        assert.equal(writer.last_line(), "m:max_gauge:42");
     });
 
     it("invalid max_gauge does not report", (): void => {
@@ -323,7 +323,7 @@ describe("Registry Tests", (): void => {
             "WARN: Id(name=g, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
             "WARN: Id(name=g, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
-        assert.deepEqual(expected, messages);
+        assert.deepEqual(messages, expected);
         console.log = f;
     });
 
@@ -335,7 +335,7 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         g.set(42);
-        assert.equal("m:max_gauge,extra-tags=foo,my-tags=bar:42", writer.last_line());
+        assert.equal(writer.last_line(), "m:max_gauge,extra-tags=foo,my-tags=bar:42");
     });
 
     it("monotonic_counter", (): void => {
@@ -346,7 +346,7 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         c.set(42);
-        assert.equal("C:monotonic_counter:42", writer.last_line());
+        assert.equal(writer.last_line(), "C:monotonic_counter:42");
     });
 
     it("invalid monotonic_counter does not report", (): void => {
@@ -373,7 +373,7 @@ describe("Registry Tests", (): void => {
             "WARN: Id(name=c, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
             "WARN: Id(name=c, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
-        assert.deepEqual(expected, messages);
+        assert.deepEqual(messages, expected);
         console.log = f;
     });
 
@@ -385,7 +385,7 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         c.set(42);
-        assert.equal("C:monotonic_counter,extra-tags=foo,my-tags=bar:42", writer.last_line());
+        assert.equal(writer.last_line(), "C:monotonic_counter,extra-tags=foo,my-tags=bar:42");
     });
 
     it("monotonic_counter_uint", (): void => {
@@ -396,7 +396,7 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         c.set(BigInt(42));
-        assert.equal("U:monotonic_counter_uint:42", writer.last_line());
+        assert.equal(writer.last_line(), "U:monotonic_counter_uint:42");
     });
 
     it("invalid monotonic_counter_uint does not report", (): void => {
@@ -423,7 +423,7 @@ describe("Registry Tests", (): void => {
             "WARN: Id(name=c, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
             "WARN: Id(name=c, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
-        assert.deepEqual(expected, messages);
+        assert.deepEqual(messages, expected);
         console.log = f;
     });
 
@@ -435,17 +435,17 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         c.set(BigInt(42));
-        assert.equal("U:monotonic_counter_uint,extra-tags=foo,my-tags=bar:42", writer.last_line());
+        assert.equal(writer.last_line(), "U:monotonic_counter_uint,extra-tags=foo,my-tags=bar:42");
     });
 
     it("new_id", (): void => {
         const r1 = new Registry(new Config("memory"));
         const id1: Id = r1.new_id("id");
-        assert.equal("Id(name=id, tags={})", id1.toString());
+        assert.equal(id1.toString(), "Id(name=id, tags={})");
 
         const r2 = new Registry(new Config("memory", {"extra-tags": "foo"}));
         const id2: Id = r2.new_id("id");
-        assert.equal("Id(name=id, tags={'extra-tags': 'foo'})", id2.toString());
+        assert.equal(id2.toString(), "Id(name=id, tags={'extra-tags': 'foo'})");
     });
 
     it("pct_distribution_summary", (): void => {
@@ -456,7 +456,7 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         d.record(42);
-        assert.equal("D:pct_distribution_summary:42", writer.last_line());
+        assert.equal(writer.last_line(), "D:pct_distribution_summary:42");
     });
 
     it("invalid pct_distribution_summary does not report", (): void => {
@@ -483,7 +483,7 @@ describe("Registry Tests", (): void => {
             "WARN: Id(name=d, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
             "WARN: Id(name=d, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
-        assert.deepEqual(expected, messages);
+        assert.deepEqual(messages, expected);
         console.log = f;
     });
 
@@ -495,7 +495,7 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         d.record(42);
-        assert.equal("D:pct_distribution_summary,extra-tags=foo,my-tags=bar:42", writer.last_line());
+        assert.equal(writer.last_line(), "D:pct_distribution_summary,extra-tags=foo,my-tags=bar:42");
     });
 
     it("pct_timer", (): void => {
@@ -506,7 +506,7 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         t.record(42);
-        assert.equal("T:pct_timer:42", writer.last_line());
+        assert.equal(writer.last_line(), "T:pct_timer:42");
     });
 
     it("invalid pct_timer does not report", (): void => {
@@ -533,7 +533,7 @@ describe("Registry Tests", (): void => {
             "WARN: Id(name=t, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
             "WARN: Id(name=t, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
-        assert.deepEqual(expected, messages);
+        assert.deepEqual(messages, expected);
         console.log = f;
     });
 
@@ -545,7 +545,7 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         t.record(42);
-        assert.equal("T:pct_timer,extra-tags=foo,my-tags=bar:42", writer.last_line());
+        assert.equal(writer.last_line(), "T:pct_timer,extra-tags=foo,my-tags=bar:42");
     });
 
     it("timer", (): void => {
@@ -556,7 +556,7 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         t.record(42);
-        assert.equal("t:timer:42", writer.last_line());
+        assert.equal(writer.last_line(), "t:timer:42");
     });
 
     it("invalid timer does not report", (): void => {
@@ -583,7 +583,7 @@ describe("Registry Tests", (): void => {
             "WARN: Id(name=t, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
             "WARN: Id(name=t, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
-        assert.deepEqual(expected, messages);
+        assert.deepEqual(messages, expected);
         console.log = f;
     });
 
@@ -595,7 +595,7 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         t.record(42);
-        assert.equal("t:timer,extra-tags=foo,my-tags=bar:42", writer.last_line());
+        assert.equal(writer.last_line(), "t:timer,extra-tags=foo,my-tags=bar:42");
     });
 
     it("writer", (): void => {
@@ -617,13 +617,13 @@ describe("Registry Tests", (): void => {
 
         r.logger.debug("use registry logger to leave a message");
 
-        const expected_messages = [
+        const expected = [
             "DEBUG: initialize MemoryWriter",
             "DEBUG: Create Registry with extra_common_tags={}",
             "DEBUG: write line=c:counter:1",
             "DEBUG: use registry logger to leave a message"
         ];
-        assert.deepEqual(expected_messages, messages);
+        assert.deepEqual(messages, expected);
 
         console.log = f;
     });

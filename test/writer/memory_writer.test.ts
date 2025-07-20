@@ -10,8 +10,8 @@ describe("MemoryWriter Tests", (): void => {
 
         memory_writer.write("c:counter:1");
         memory_writer.write("g:gauge:2");
-        assert.deepEqual(["c:counter:1", "g:gauge:2"], memory_writer.get());
-        assert.equal("g:gauge:2", memory_writer.last_line());
+        assert.deepEqual(memory_writer.get(), ["c:counter:1", "g:gauge:2"]);
+        assert.equal(memory_writer.last_line(), "g:gauge:2");
 
         memory_writer.clear();
         assert.isTrue(memory_writer.is_empty());

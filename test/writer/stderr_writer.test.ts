@@ -4,11 +4,11 @@ import {describe, it} from "node:test";
 
 describe("StderrWriter Tests", (): void => {
     it("intercepted stderr", async (): Promise<void> => {
-        const data: string[] = [];
+        const messages: string[] = [];
         const f = process.stderr.write.bind(process.stderr);
 
         process.stderr.write = (chunk: any, ...args: any[]): boolean => {
-            data.push(chunk.toString());
+            messages.push(chunk.toString());
             return f(chunk, ...args); // Call the original write method to display it
         };
 
@@ -21,7 +21,7 @@ describe("StderrWriter Tests", (): void => {
             "c:server.numRequests,id=failed:2"
         ];
 
-        assert.deepEqual(data, expected);
+        assert.deepEqual(messages, expected);
 
         await writer.close();
         process.stderr.write = f;
