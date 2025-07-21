@@ -71,151 +71,111 @@ export class Registry {
 
     age_gauge(name: string, tags: Tags = {}): AgeGauge {
         const id = this.new_id(name, tags);
-        if (id.invalid) {
-            return new AgeGauge(id, new NoopWriter());
-        }
-        return new AgeGauge(id, this._writer);
+        const writer = id.invalid ? new NoopWriter() : this._writer;
+        return new AgeGauge(id, writer);
     }
 
     age_gauge_with_id(id: Id): AgeGauge {
-        if (id.invalid) {
-            return new AgeGauge(id, new NoopWriter());
-        }
-        return new AgeGauge(id, this._writer);
+        const writer = id.invalid ? new NoopWriter() : this._writer;
+        return new AgeGauge(id, writer);
     }
 
     counter(name: string, tags: Tags = {}): Counter {
         const id = this.new_id(name, tags);
-        if (id.invalid) {
-            return new Counter(id, new NoopWriter());
-        }
-        return new Counter(id, this._writer);
+        const writer = id.invalid ? new NoopWriter() : this._writer;
+        return new Counter(id, writer);
     }
 
     counter_with_id(id: Id): Counter {
-        if (id.invalid) {
-            return new Counter(id, new NoopWriter());
-        }
-        return new Counter(id, this._writer);
+        const writer = id.invalid ? new NoopWriter() : this._writer;
+        return new Counter(id, writer);
     }
 
     distribution_summary(name: string, tags: Tags = {}): DistributionSummary {
         const id = this.new_id(name, tags);
-        if (id.invalid) {
-            return new DistributionSummary(id, new NoopWriter());
-        }
-        return new DistributionSummary(id, this._writer);
+        const writer = id.invalid ? new NoopWriter() : this._writer;
+        return new DistributionSummary(id, writer);
     }
 
     distribution_summary_with_id(id: Id): DistributionSummary {
-        if (id.invalid) {
-            return new DistributionSummary(id, new NoopWriter());
-        }
-        return new DistributionSummary(id, this._writer);
+        const writer = id.invalid ? new NoopWriter() : this._writer;
+        return new DistributionSummary(id, writer);
     }
 
     gauge(name: string, tags: Tags = {}, ttl_seconds?: number): Gauge {
         const id = this.new_id(name, tags);
-        if (id.invalid) {
-            return new Gauge(id, new NoopWriter(), ttl_seconds);
-        }
-        return new Gauge(id, this._writer, ttl_seconds);
+        const writer = id.invalid ? new NoopWriter() : this._writer;
+        return new Gauge(id, writer, ttl_seconds);
     }
 
     gauge_with_id(id: Id, ttl_seconds?: number): Gauge {
-        if (id.invalid) {
-            return new Gauge(id, new NoopWriter(), ttl_seconds);
-        }
-        return new Gauge(id, this._writer, ttl_seconds);
+        const writer = id.invalid ? new NoopWriter() : this._writer;
+        return new Gauge(id, writer, ttl_seconds);
     }
 
     max_gauge(name: string, tags: Tags = {}): MaxGauge {
         const id = this.new_id(name, tags);
-        if (id.invalid) {
-            return new MaxGauge(id, new NoopWriter());
-        }
-        return new MaxGauge(id, this._writer);
+        const writer = id.invalid ? new NoopWriter() : this._writer;
+        return new MaxGauge(id, writer);
     }
 
     max_gauge_with_id(id: Id): MaxGauge {
-        if (id.invalid) {
-            return new MaxGauge(id, new NoopWriter());
-        }
-        return new MaxGauge(id, this._writer);
+        const writer = id.invalid ? new NoopWriter() : this._writer;
+        return new MaxGauge(id, writer);
     }
 
     monotonic_counter(name: string, tags: Tags = {}): MonotonicCounter {
         const id = this.new_id(name, tags);
-        if (id.invalid) {
-            return new MonotonicCounter(id, new NoopWriter());
-        }
-        return new MonotonicCounter(id, this._writer);
+        const writer = id.invalid ? new NoopWriter() : this._writer;
+        return new MonotonicCounter(id, writer);
     }
 
     monotonic_counter_with_id(id: Id): MonotonicCounter {
-        if (id.invalid) {
-            return new MonotonicCounter(id, new NoopWriter());
-        }
-        return new MonotonicCounter(id, this._writer);
+        const writer = id.invalid ? new NoopWriter() : this._writer;
+        return new MonotonicCounter(id, writer);
     }
 
     monotonic_counter_uint(name: string, tags: Tags = {}): MonotonicCounterUint {
         const id = this.new_id(name, tags);
-        if (id.invalid) {
-            return new MonotonicCounterUint(id, new NoopWriter());
-        }
-        return new MonotonicCounterUint(id, this._writer);
+        const writer = id.invalid ? new NoopWriter() : this._writer;
+        return new MonotonicCounterUint(id, writer);
     }
 
     monotonic_counter_uint_with_id(id: Id): MonotonicCounterUint {
-        if (id.invalid) {
-            return new MonotonicCounterUint(id, new NoopWriter());
-        }
-        return new MonotonicCounterUint(id, this._writer);
+        const writer = id.invalid ? new NoopWriter() : this._writer;
+        return new MonotonicCounterUint(id, writer);
     }
 
     pct_distribution_summary(name: string, tags: Tags = {}): PercentileDistributionSummary {
         const id = this.new_id(name, tags);
-        if (id.invalid) {
-            return new PercentileDistributionSummary(id, new NoopWriter());
-        }
-        return new PercentileDistributionSummary(id, this._writer);
+        const writer = id.invalid ? new NoopWriter() : this._writer;
+        return new PercentileDistributionSummary(id, writer);
     }
 
     pct_distribution_summary_with_id(id: Id): PercentileDistributionSummary {
-        if (id.invalid) {
-            return new PercentileDistributionSummary(id, new NoopWriter());
-        }
-        return new PercentileDistributionSummary(id, this._writer);
+        const writer = id.invalid ? new NoopWriter() : this._writer;
+        return new PercentileDistributionSummary(id, writer);
     }
 
     pct_timer(name: string, tags: Tags = {}): PercentileTimer {
         const id = this.new_id(name, tags);
-        if (id.invalid) {
-            return new PercentileTimer(id, new NoopWriter());
-        }
-        return new PercentileTimer(id, this._writer);
+        const writer = id.invalid ? new NoopWriter() : this._writer;
+        return new PercentileTimer(id, writer);
     }
 
     pct_timer_with_id(id: Id): PercentileTimer {
-        if (id.invalid) {
-            return new PercentileTimer(id, new NoopWriter());
-        }
-        return new PercentileTimer(id, this._writer);
+        const writer = id.invalid ? new NoopWriter() : this._writer;
+        return new PercentileTimer(id, writer);
     }
 
     timer(name: string, tags: Tags = {}): Timer {
         const id = this.new_id(name, tags);
-        if (id.invalid) {
-            return new Timer(id, new NoopWriter());
-        }
-        return new Timer(id, this._writer);
+        const writer = id.invalid ? new NoopWriter() : this._writer;
+        return new Timer(id, writer);
     }
 
     timer_with_id(id: Id): Timer {
-        if (id.invalid) {
-            return new Timer(id, new NoopWriter());
-        }
-        return new Timer(id, this._writer);
+        const writer = id.invalid ? new NoopWriter() : this._writer;
+        return new Timer(id, writer);
     }
 }
