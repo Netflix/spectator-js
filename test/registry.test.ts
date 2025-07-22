@@ -79,8 +79,8 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         const expected: string[] = [
-            "WARN: Id(name=g, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
-            "WARN: Id(name=g, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
+            "WARN: Id(name=g, tags={}) is invalid, because the name is too short (< 2), or it is too long (> 255); metric will not be reported",
+            "WARN: Id(name=g, tags={}) is invalid, because the name is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
         assert.deepEqual(messages, expected);
         console.log = f;
@@ -142,8 +142,8 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         const expected: string[] = [
-            "WARN: Id(name=c, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
-            "WARN: Id(name=c, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
+            "WARN: Id(name=c, tags={}) is invalid, because the name is too short (< 2), or it is too long (> 255); metric will not be reported",
+            "WARN: Id(name=c, tags={}) is invalid, because the name is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
         assert.deepEqual(messages, expected);
         console.log = f;
@@ -198,8 +198,8 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         const expected: string[] = [
-            "WARN: Id(name=d, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
-            "WARN: Id(name=d, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
+            "WARN: Id(name=d, tags={}) is invalid, because the name is too short (< 2), or it is too long (> 255); metric will not be reported",
+            "WARN: Id(name=d, tags={}) is invalid, because the name is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
         assert.deepEqual(messages, expected);
         console.log = f;
@@ -248,8 +248,8 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         const expected: string[] = [
-            "WARN: Id(name=g, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
-            "WARN: Id(name=g, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
+            "WARN: Id(name=g, tags={}) is invalid, because the name is too short (< 2), or it is too long (> 255); metric will not be reported",
+            "WARN: Id(name=g, tags={}) is invalid, because the name is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
         assert.deepEqual(messages, expected);
         console.log = f;
@@ -320,8 +320,8 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         const expected: string[] = [
-            "WARN: Id(name=g, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
-            "WARN: Id(name=g, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
+            "WARN: Id(name=g, tags={}) is invalid, because the name is too short (< 2), or it is too long (> 255); metric will not be reported",
+            "WARN: Id(name=g, tags={}) is invalid, because the name is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
         assert.deepEqual(messages, expected);
         console.log = f;
@@ -370,8 +370,8 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         const expected: string[] = [
-            "WARN: Id(name=c, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
-            "WARN: Id(name=c, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
+            "WARN: Id(name=c, tags={}) is invalid, because the name is too short (< 2), or it is too long (> 255); metric will not be reported",
+            "WARN: Id(name=c, tags={}) is invalid, because the name is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
         assert.deepEqual(messages, expected);
         console.log = f;
@@ -420,8 +420,8 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         const expected: string[] = [
-            "WARN: Id(name=c, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
-            "WARN: Id(name=c, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
+            "WARN: Id(name=c, tags={}) is invalid, because the name is too short (< 2), or it is too long (> 255); metric will not be reported",
+            "WARN: Id(name=c, tags={}) is invalid, because the name is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
         assert.deepEqual(messages, expected);
         console.log = f;
@@ -480,8 +480,8 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         const expected: string[] = [
-            "WARN: Id(name=d, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
-            "WARN: Id(name=d, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
+            "WARN: Id(name=d, tags={}) is invalid, because the name is too short (< 2), or it is too long (> 255); metric will not be reported",
+            "WARN: Id(name=d, tags={}) is invalid, because the name is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
         assert.deepEqual(messages, expected);
         console.log = f;
@@ -530,8 +530,8 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         const expected: string[] = [
-            "WARN: Id(name=t, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
-            "WARN: Id(name=t, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
+            "WARN: Id(name=t, tags={}) is invalid, because the name is too short (< 2), or it is too long (> 255); metric will not be reported",
+            "WARN: Id(name=t, tags={}) is invalid, because the name is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
         assert.deepEqual(messages, expected);
         console.log = f;
@@ -580,8 +580,8 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
 
         const expected: string[] = [
-            "WARN: Id(name=t, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
-            "WARN: Id(name=t, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
+            "WARN: Id(name=t, tags={}) is invalid, because the name is too short (< 2), or it is too long (> 255); metric will not be reported",
+            "WARN: Id(name=t, tags={}) is invalid, because the name is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
         assert.deepEqual(messages, expected);
         console.log = f;
