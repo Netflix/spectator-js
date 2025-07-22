@@ -72,10 +72,14 @@ export class Id {
     }
 
     private to_spectatord_id(name: string, tags?: Tags): string {
-        // javascript and length protection check
-        if (typeof name !== "string" || name.length < 2 || name.length > 255) {
-            this._logger.warn(`Id(name=${name}, tags=${tags_toString(tags)}) is invalid, because the name is not a string, ` +
-                `it is too short (< 2), or it is too long (> 255); metric will not be reported`);
+        // javascript protection check
+        if (typeof name !== "string") {
+            name = String(name);
+        }
+
+        if (name.length < 2 || name.length > 255) {
+            this._logger.warn(`Id(name=${name}, tags=${tags_toString(tags)}) is invalid, because the name ` +
+                `is too short (< 2), or it is too long (> 255); metric will not be reported`);
             this.invalid = true;
             return '';
         }

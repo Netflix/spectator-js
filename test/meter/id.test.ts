@@ -38,13 +38,13 @@ describe("Id Tests", (): void => {
         // name too long
         const long = "a".repeat(256);
         const id2 = new Id(long);
-        assert.equal(id2.toString(),"Id(name=" + long +", tags={})" );
+        assert.equal(id2.toString(),"Id(name=" + long + ", tags={})" );
         assert.isTrue(id2.invalid);
         assert.equal(id2.spectatord_id, "");
 
         const expected: string[] = [
-            "WARN: Id(name=a, tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
-            "WARN: Id(name=" + long + ", tags={}) is invalid, because the name is not a string, it is too short (< 2), or it is too long (> 255); metric will not be reported",
+            "WARN: Id(name=a, tags={}) is invalid, because the name is too short (< 2), or it is too long (> 255); metric will not be reported",
+            "WARN: Id(name=" + long + ", tags={}) is invalid, because the name is too short (< 2), or it is too long (> 255); metric will not be reported",
         ];
 
         assert.deepEqual(messages, expected);
