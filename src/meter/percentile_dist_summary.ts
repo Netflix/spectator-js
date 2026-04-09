@@ -23,10 +23,7 @@ export class PercentileDistributionSummary extends Meter {
         if (amount >= 0) {
             const line = `${this._meter_type_symbol}:${this._id.spectatord_id}:${amount}`
             return this._writer.write(line);
-        } else {
-            return new Promise((resolve: (value: void | PromiseLike<void>) => void): void => {
-                resolve();
-            });
         }
+        return Promise.resolve();
     }
 }

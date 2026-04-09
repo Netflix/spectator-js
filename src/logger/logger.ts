@@ -18,34 +18,10 @@ export type Logger = {
 };
 
 export function get_logger(level_name?: string): Logger {
-    let level_filter: number;
-    if (level_name == undefined || !(level_name in levels)) {
-        level_filter = levels.info;
-    } else {
-        level_filter = levels[level_name];
-    }
+    const level_filter = (level_name && level_name in levels) ? levels[level_name] : levels.info;
 
-    const logger: Logger = {
-        is_level_enabled: (name: string): boolean => levels[name] >= level_filter,
-        trace: function (): void {
-            throw new Error("Function not implemented.");
-        },
-        debug: function (): void {
-            throw new Error("Function not implemented.");
-        },
-        info: function (): void {
-            throw new Error("Function not implemented.");
-        },
-        warn: function (): void {
-            throw new Error("Function not implemented.");
-        },
-        error: function (): void {
-            throw new Error("Function not implemented.");
-        },
-        fatal: function (): void {
-            throw new Error("Function not implemented.");
-        }
-    };
+    const logger = {} as Logger;
+    logger.is_level_enabled = (name: string): boolean => levels[name] >= level_filter;
 
     for (const name in levels) {
         if (levels[name] < level_filter) {
