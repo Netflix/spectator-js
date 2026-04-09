@@ -35,16 +35,14 @@ export function new_writer(location: string, logger?: Logger): WriterUnion {
         return new StdoutWriter(log);
     }
     if (location == "udp") {
-        location = "udp://127.0.0.1:1234"
-        const parsed = new URL(location);
-        return new UdpWriter(location, parsed.hostname, Number(parsed.port), log);
+        location = "udp://127.0.0.1:1234";
     }
     if (location.startsWith("file://")) {
         return new FileWriter(location, log);
     }
     if (location.startsWith("udp://")) {
         const parsed = new URL(location);
-        // convert IPv6 loop-back address from [::1] to ::1, so it works with the socket api
+        // convert IPv6 bracket notation [::1] to ::1 for the socket api
         const hostname = parsed.hostname.replace("[::1]", "::1");
         return new UdpWriter(location, hostname, Number(parsed.port), log);
     }
