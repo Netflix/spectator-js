@@ -1,53 +1,65 @@
 import {Writer} from "./writer.js";
 import {get_logger, Logger} from "../logger/logger.js";
-import {createSocket, Socket, SocketType} from "node:dgram";
+import {createSocket, Socket} from "node:dgram";
 import {isIPv6} from "node:net";
 
-export class UdpWriter extends Writer {
-    /**
-     * Writer that outputs data to a UDP socket.
-     */
+const RESOLVED = Promise.resolve();
+const MAX_BUFFER_BYTES = 8192;
+const FLUSH_INTERVAL_MS = 15000;
 
-    private readonly _address: string;
-    private readonly _port: number;
-    private readonly _family: SocketType;
+/**
+ * Buffers metrics and flushes them as newline-delimited UDP packets,
+ * either when the buffer reaches MAX_BUFFER_BYTES or every FLUSH_INTERVAL_MS.
+ */
+export class UdpWriter extends Writer {
     private _socket: Socket;
+    private _buffer: string[] = [];
+    private _bufferBytes = 0;
+    private _flushTimer: ReturnType<typeof setTimeout> | null = null;
+    private _connected = false;
 
     constructor(location: string, address: string, port: number, logger: Logger = get_logger()) {
         super(logger);
         this._logger.debug(`initialize UdpWriter to ${location}`);
-        this._address = address;
-        this._port = port;
-
-        if (isIPv6(this._address)) {
-            this._family = "udp6";
-        } else {
-            // IPv4 addresses, and anything that does not appear to be an IPv4 or IPv6 address (i.e. hostnames)
-            this._family = "udp4";
-        }
-
-        this._socket = createSocket(this._family);
-    }
-
-    write(line: string): Promise<void> {
-        return new Promise((resolve: (value: void | PromiseLike<void>) => void, reject: (reason?: any) => void): void => {
-            this._logger.debug(`write line=${line}`);
-            this._socket.send(line, this._port, this._address, (err: Error | null): void => {
-                if (err) {
-                    this._logger.error(`failed to write line=${line}: ${err.message}`);
-                    reject(err);
-                } else {
-                    resolve();
-                }
-            })
+        this._socket = createSocket(isIPv6(address) ? "udp6" : "udp4");
+        this._socket.connect(port, address, () => {
+            this._connected = true;
+            this.flush();
         });
     }
 
+    write(line: string): Promise<void> {
+        this._buffer.push(line);
+        this._bufferBytes += line.length + 1;
+
+        if (this._bufferBytes >= MAX_BUFFER_BYTES) {
+            this.flush();
+        } else if (!this._flushTimer) {
+            this._flushTimer = setTimeout(() => this.flush(), FLUSH_INTERVAL_MS);
+        }
+
+        return RESOLVED;
+    }
+
     close(): Promise<void> {
-        return new Promise((resolve: (value: void | PromiseLike<void>) => void): void => {
-            this._socket.close((): void => {
-                resolve();
-            });
+        this.flush();
+        return new Promise((resolve) => this._socket.close(resolve));
+    }
+
+    private flush(): void {
+        if (this._buffer.length === 0 || !this._connected) return;
+
+        if (this._flushTimer) {
+            clearTimeout(this._flushTimer);
+            this._flushTimer = null;
+        }
+
+        const payload = this._buffer.join("\n");
+        this._buffer = [];
+        this._bufferBytes = 0;
+
+        this._socket.send(payload, (err: Error | null) => {
+            if (err) this._logger.error(`failed to send udp payload: ${err.message}`);
         });
     }
 }

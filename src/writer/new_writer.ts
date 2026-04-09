@@ -1,4 +1,4 @@
-import {Logger} from "../logger/logger.js";
+import {get_logger, Logger} from "../logger/logger.js";
 import {NoopWriter} from "./noop_writer.js";
 import {MemoryWriter} from "./memory_writer.js";
 import {FileWriter} from "./file_writer.js";
@@ -20,38 +20,28 @@ export function new_writer(location: string, logger?: Logger): WriterUnion {
      * Create a new Writer based on an output location.
      */
 
-    let writer: WriterUnion;
+    const log = logger ?? get_logger();
 
     if (location == "none") {
-        writer = logger == undefined ? new NoopWriter() : new NoopWriter(logger);
+        return new NoopWriter(log);
     } else if (location == "memory") {
-        writer = logger == undefined ? new MemoryWriter() : new MemoryWriter(logger);
+        return new MemoryWriter(log);
     } else if (location == "stderr") {
-        writer = logger == undefined ? new StderrWriter() : new StderrWriter(logger);
+        return new StderrWriter(log);
     } else if (location == "stdout") {
-        writer = logger == undefined ? new StdoutWriter() : new StdoutWriter(logger);
+        return new StdoutWriter(log);
     } else if (location == "udp") {
         location = "udp://127.0.0.1:1234"
-        const parsed: URL = new URL(location)
-        if (logger == undefined) {
-            writer = new UdpWriter(location, parsed.hostname, Number(parsed.port));
-        } else {
-            writer = new UdpWriter(location, parsed.hostname, Number(parsed.port), logger);
-        }
+        const parsed = new URL(location);
+        return new UdpWriter(location, parsed.hostname, Number(parsed.port), log);
     } else if (location.startsWith("file://")) {
-        writer = logger == undefined ? new FileWriter(location) : new FileWriter(location, logger);
+        return new FileWriter(location, log);
     } else if (location.startsWith("udp://")) {
-        const parsed: URL = new URL(location)
+        const parsed = new URL(location);
         // convert IPv6 loop-back address from [::1] to ::1, so it works with the socket api
-        const hostname: string = parsed.hostname.replace("[::1]", "::1")
-        if (logger == undefined) {
-            writer = new UdpWriter(location, hostname, Number(parsed.port));
-        } else {
-            writer = new UdpWriter(location, hostname, Number(parsed.port), logger);
-        }
-    } else {
-        throw new Error(`unsupported Writer location: ${location}`);
+        const hostname = parsed.hostname.replace("[::1]", "::1");
+        return new UdpWriter(location, hostname, Number(parsed.port), log);
     }
 
-    return writer;
+    throw new Error(`unsupported Writer location: ${location}`);
 }
