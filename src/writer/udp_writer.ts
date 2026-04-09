@@ -31,6 +31,7 @@ export class UdpWriter extends Writer {
         this._flushIntervalMs = flushIntervalMs;
         this._logger.debug(`initialize UdpWriter to ${location}`);
         this._socket = createSocket(isIPv6(address) ? "udp6" : "udp4");
+        this._socket.on('error', (err) => this._logger.error(`udp socket error: ${err.message}`));
         this._lastOperation = new Promise((resolve) => {
             this._socket.connect(port, address, resolve);
         });
@@ -47,6 +48,7 @@ export class UdpWriter extends Writer {
             this.flush();
         } else if (!this._flushTimer) {
             this._flushTimer = setTimeout(() => this.flush(), this._flushIntervalMs);
+            this._flushTimer.unref();
         }
 
         return RESOLVED;
@@ -55,6 +57,7 @@ export class UdpWriter extends Writer {
     // Clears the timer synchronously (must happen before chaining, so a pending
     // timer can't schedule a flush that runs after close), then chains drainBuffer.
     close(): Promise<void> {
+        if (this._closed) return this._lastOperation;
         this._closed = true;
         if (this._flushTimer) {
             clearTimeout(this._flushTimer);
