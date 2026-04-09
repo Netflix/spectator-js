@@ -24,19 +24,25 @@ export function new_writer(location: string, logger?: Logger): WriterUnion {
 
     if (location == "none") {
         return new NoopWriter(log);
-    } else if (location == "memory") {
+    }
+    if (location == "memory") {
         return new MemoryWriter(log);
-    } else if (location == "stderr") {
+    }
+    if (location == "stderr") {
         return new StderrWriter(log);
-    } else if (location == "stdout") {
+    }
+    if (location == "stdout") {
         return new StdoutWriter(log);
-    } else if (location == "udp") {
+    }
+    if (location == "udp") {
         location = "udp://127.0.0.1:1234"
         const parsed = new URL(location);
         return new UdpWriter(location, parsed.hostname, Number(parsed.port), log);
-    } else if (location.startsWith("file://")) {
+    }
+    if (location.startsWith("file://")) {
         return new FileWriter(location, log);
-    } else if (location.startsWith("udp://")) {
+    }
+    if (location.startsWith("udp://")) {
         const parsed = new URL(location);
         // convert IPv6 loop-back address from [::1] to ::1, so it works with the socket api
         const hostname = parsed.hostname.replace("[::1]", "::1");

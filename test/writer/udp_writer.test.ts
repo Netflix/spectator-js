@@ -50,9 +50,11 @@ describe("UdpWriter Tests", (): void => {
 
         await sleep(2);  // tiny pause is necessary to see data
 
-        assert.equal(messages.length, 2);
-        assert.equal(messages[0], "c:server.numRequests,id=failed:1");
-        assert.equal(messages[1], "c:server.numRequests,id=failed:2");
+        // messages are batched into newline-delimited UDP packets
+        const lines = messages.flatMap((m) => m.split("\n"));
+        assert.equal(lines.length, 2);
+        assert.equal(lines[0], "c:server.numRequests,id=failed:1");
+        assert.equal(lines[1], "c:server.numRequests,id=failed:2");
 
         messages.length = 0;  // clear server messages
     });
@@ -66,9 +68,11 @@ describe("UdpWriter Tests", (): void => {
 
         await sleep(2);  // tiny pause is necessary to see data
 
-        assert.equal(messages.length, 2);
-        assert.equal(messages[0], "c:server.numRequests,id=success:1");
-        assert.equal(messages[1], "c:server.numRequests,id=success:2");
+        // messages are batched into newline-delimited UDP packets
+        const lines = messages.flatMap((m) => m.split("\n"));
+        assert.equal(lines.length, 2);
+        assert.equal(lines[0], "c:server.numRequests,id=success:1");
+        assert.equal(lines[1], "c:server.numRequests,id=success:2");
 
         messages.length = 0;  // clear server messages
     });

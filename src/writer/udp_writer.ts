@@ -13,18 +13,17 @@ const FLUSH_INTERVAL_MS = 15000;
  */
 export class UdpWriter extends Writer {
     private _socket: Socket;
+    private _ready: Promise<void>;
     private _buffer: string[] = [];
     private _bufferBytes = 0;
     private _flushTimer: ReturnType<typeof setTimeout> | null = null;
-    private _connected = false;
 
     constructor(location: string, address: string, port: number, logger: Logger = get_logger()) {
         super(logger);
         this._logger.debug(`initialize UdpWriter to ${location}`);
         this._socket = createSocket(isIPv6(address) ? "udp6" : "udp4");
-        this._socket.connect(port, address, () => {
-            this._connected = true;
-            this.flush();
+        this._ready = new Promise((resolve) => {
+            this._socket.connect(port, address, resolve);
         });
     }
 
@@ -42,24 +41,45 @@ export class UdpWriter extends Writer {
     }
 
     close(): Promise<void> {
-        this.flush();
-        return new Promise((resolve) => this._socket.close(resolve));
-    }
-
-    private flush(): void {
-        if (this._buffer.length === 0 || !this._connected) return;
-
         if (this._flushTimer) {
             clearTimeout(this._flushTimer);
             this._flushTimer = null;
         }
 
-        const payload = this._buffer.join("\n");
-        this._buffer = [];
-        this._bufferBytes = 0;
+        return this._ready.then(() => {
+            if (this._buffer.length === 0) {
+                return new Promise<void>((resolve) => this._socket.close(resolve));
+            }
 
-        this._socket.send(payload, (err: Error | null) => {
-            if (err) this._logger.error(`failed to send udp payload: ${err.message}`);
+            const payload = this._buffer.join("\n");
+            this._buffer = [];
+            this._bufferBytes = 0;
+
+            return new Promise<void>((resolve) => {
+                this._socket.send(payload, (err: Error | null) => {
+                    if (err) this._logger.error(`failed to send udp payload: ${err.message}`);
+                    this._socket.close(resolve);
+                });
+            });
+        });
+    }
+
+    private flush(): void {
+        this._ready.then(() => {
+            if (this._buffer.length === 0) return;
+
+            if (this._flushTimer) {
+                clearTimeout(this._flushTimer);
+                this._flushTimer = null;
+            }
+
+            const payload = this._buffer.join("\n");
+            this._buffer = [];
+            this._bufferBytes = 0;
+
+            this._socket.send(payload, (err: Error | null) => {
+                if (err) this._logger.error(`failed to send udp payload: ${err.message}`);
+            });
         });
     }
 }
