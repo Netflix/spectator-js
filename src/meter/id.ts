@@ -8,16 +8,12 @@ export function tags_toString(tags: Tags | undefined): string {
         return "{}"
     }
 
-    let result: string = "{";
-
-    if (Object.entries(tags).length > 0) {
-        Object.entries(tags).forEach(([k, v]: [string, string]): void => {
-            result += `'${k}': '${v}', `;
-        });
-        result = result.slice(0, -2);
+    const entries = Object.entries(tags);
+    if (entries.length === 0) {
+        return "{}";
     }
 
-    return result + "}";
+    return "{" + entries.map(([k, v]) => `'${k}': '${v}'`).join(", ") + "}";
 }
 
 export class Id {
@@ -27,7 +23,7 @@ export class Id {
      * ensure that any extra common tags are properly applied to the Meter.
      */
 
-    private INVALID_CHARS: RegExp = new RegExp(/[^-._A-Za-z0-9~^]/g);
+    private static readonly INVALID_CHARS = /[^-._A-Za-z0-9~^]/g;
 
     private readonly _logger: Logger;
     private readonly _name: string;
@@ -38,19 +34,11 @@ export class Id {
 
     constructor(name: string, tags?: Tags, logger?: Logger) {
         // initialization order in this constructor matters, for logging and testing purposes
-        if (logger == undefined) {
-            this._logger = get_logger();
-        } else {
-            this._logger = logger;
-        }
+        this._logger = logger ?? get_logger();
 
         this._name = name;
 
-        if (tags == undefined) {
-            this._tags = {}
-        } else {
-            this._tags = this.validate_tags_for_id(tags);
-        }
+        this._tags = tags ? this.validate_tags_for_id(tags) : {};
 
         this.spectatord_id = this.to_spectatord_id(this._name, this._tags);
     }
@@ -68,7 +56,7 @@ export class Id {
     }
 
     private replace_invalid_chars(s: string): string {
-        return s.replace(this.INVALID_CHARS, "_");
+        return s.replace(Id.INVALID_CHARS, "_");
     }
 
     private to_spectatord_id(name: string, tags?: Tags): string {

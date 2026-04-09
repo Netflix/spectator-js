@@ -32,15 +32,17 @@ describe("Registry Tests", (): void => {
         assert.isTrue(writer.is_empty());
     });
 
-    it("default config", (): void => {
+    it("default config", async (): Promise<void> => {
         const r = new Registry();
         assert.isTrue(r.writer() instanceof UdpWriter);
+        await r.close();
     });
 
-    it("get config", (): void => {
+    it("get config", async (): Promise<void> => {
         const r = new Registry();
         assert.equal(r.config().location, "udp", )
         assert.deepEqual(r.config().extra_common_tags, {})
+        await r.close();
     });
 
     it("age_gauge", (): void => {

@@ -51,9 +51,7 @@ export class Registry {
             if (error instanceof Error) {
                 this.logger.error(`Error closing Registry Writer: ${error.message}`);
             }
-            return new Promise((_: (value: void | PromiseLike<void>) => void, reject: (reason?: any) => void): void => {
-                reject(error);
-            });
+            return Promise.reject(error);
         }
     }
 
@@ -71,37 +69,33 @@ export class Registry {
         return new_meter_id;
     }
 
-    age_gauge(name: string, tags: Tags = {}): AgeGauge {
-        const id = this.new_id(name, tags);
+    private create<T>(MeterClass: new (id: Id, writer: WriterUnion) => T, id: Id): T {
         const writer = id.invalid ? this._noop_writer : this._writer;
-        return new AgeGauge(id, writer);
+        return new MeterClass(id, writer);
+    }
+
+    age_gauge(name: string, tags: Tags = {}): AgeGauge {
+        return this.create(AgeGauge, this.new_id(name, tags));
     }
 
     age_gauge_with_id(id: Id): AgeGauge {
-        const writer = id.invalid ? this._noop_writer : this._writer;
-        return new AgeGauge(id, writer);
+        return this.create(AgeGauge, id);
     }
 
     counter(name: string, tags: Tags = {}): Counter {
-        const id = this.new_id(name, tags);
-        const writer = id.invalid ? this._noop_writer : this._writer;
-        return new Counter(id, writer);
+        return this.create(Counter, this.new_id(name, tags));
     }
 
     counter_with_id(id: Id): Counter {
-        const writer = id.invalid ? this._noop_writer : this._writer;
-        return new Counter(id, writer);
+        return this.create(Counter, id);
     }
 
     distribution_summary(name: string, tags: Tags = {}): DistributionSummary {
-        const id = this.new_id(name, tags);
-        const writer = id.invalid ? this._noop_writer : this._writer;
-        return new DistributionSummary(id, writer);
+        return this.create(DistributionSummary, this.new_id(name, tags));
     }
 
     distribution_summary_with_id(id: Id): DistributionSummary {
-        const writer = id.invalid ? this._noop_writer : this._writer;
-        return new DistributionSummary(id, writer);
+        return this.create(DistributionSummary, id);
     }
 
     gauge(name: string, tags: Tags = {}, ttl_seconds?: number): Gauge {
@@ -116,68 +110,50 @@ export class Registry {
     }
 
     max_gauge(name: string, tags: Tags = {}): MaxGauge {
-        const id = this.new_id(name, tags);
-        const writer = id.invalid ? this._noop_writer : this._writer;
-        return new MaxGauge(id, writer);
+        return this.create(MaxGauge, this.new_id(name, tags));
     }
 
     max_gauge_with_id(id: Id): MaxGauge {
-        const writer = id.invalid ? this._noop_writer : this._writer;
-        return new MaxGauge(id, writer);
+        return this.create(MaxGauge, id);
     }
 
     monotonic_counter(name: string, tags: Tags = {}): MonotonicCounter {
-        const id = this.new_id(name, tags);
-        const writer = id.invalid ? this._noop_writer : this._writer;
-        return new MonotonicCounter(id, writer);
+        return this.create(MonotonicCounter, this.new_id(name, tags));
     }
 
     monotonic_counter_with_id(id: Id): MonotonicCounter {
-        const writer = id.invalid ? this._noop_writer : this._writer;
-        return new MonotonicCounter(id, writer);
+        return this.create(MonotonicCounter, id);
     }
 
     monotonic_counter_uint(name: string, tags: Tags = {}): MonotonicCounterUint {
-        const id = this.new_id(name, tags);
-        const writer = id.invalid ? this._noop_writer : this._writer;
-        return new MonotonicCounterUint(id, writer);
+        return this.create(MonotonicCounterUint, this.new_id(name, tags));
     }
 
     monotonic_counter_uint_with_id(id: Id): MonotonicCounterUint {
-        const writer = id.invalid ? this._noop_writer : this._writer;
-        return new MonotonicCounterUint(id, writer);
+        return this.create(MonotonicCounterUint, id);
     }
 
     pct_distribution_summary(name: string, tags: Tags = {}): PercentileDistributionSummary {
-        const id = this.new_id(name, tags);
-        const writer = id.invalid ? this._noop_writer : this._writer;
-        return new PercentileDistributionSummary(id, writer);
+        return this.create(PercentileDistributionSummary, this.new_id(name, tags));
     }
 
     pct_distribution_summary_with_id(id: Id): PercentileDistributionSummary {
-        const writer = id.invalid ? this._noop_writer : this._writer;
-        return new PercentileDistributionSummary(id, writer);
+        return this.create(PercentileDistributionSummary, id);
     }
 
     pct_timer(name: string, tags: Tags = {}): PercentileTimer {
-        const id = this.new_id(name, tags);
-        const writer = id.invalid ? this._noop_writer : this._writer;
-        return new PercentileTimer(id, writer);
+        return this.create(PercentileTimer, this.new_id(name, tags));
     }
 
     pct_timer_with_id(id: Id): PercentileTimer {
-        const writer = id.invalid ? this._noop_writer : this._writer;
-        return new PercentileTimer(id, writer);
+        return this.create(PercentileTimer, id);
     }
 
     timer(name: string, tags: Tags = {}): Timer {
-        const id = this.new_id(name, tags);
-        const writer = id.invalid ? this._noop_writer : this._writer;
-        return new Timer(id, writer);
+        return this.create(Timer, this.new_id(name, tags));
     }
 
     timer_with_id(id: Id): Timer {
-        const writer = id.invalid ? this._noop_writer : this._writer;
-        return new Timer(id, writer);
+        return this.create(Timer, id);
     }
 }

@@ -50,9 +50,11 @@ describe("UdpWriter Tests", (): void => {
 
         await sleep(2);  // tiny pause is necessary to see data
 
-        assert.equal(messages.length, 2);
-        assert.equal(messages[0], "c:server.numRequests,id=failed:1");
-        assert.equal(messages[1], "c:server.numRequests,id=failed:2");
+        // messages are batched into newline-delimited UDP packets
+        const lines = messages.flatMap((m) => m.split("\n"));
+        assert.equal(lines.length, 2);
+        assert.equal(lines[0], "c:server.numRequests,id=failed:1");
+        assert.equal(lines[1], "c:server.numRequests,id=failed:2");
 
         messages.length = 0;  // clear server messages
     });
@@ -66,11 +68,127 @@ describe("UdpWriter Tests", (): void => {
 
         await sleep(2);  // tiny pause is necessary to see data
 
-        assert.equal(messages.length, 2);
-        assert.equal(messages[0], "c:server.numRequests,id=success:1");
-        assert.equal(messages[1], "c:server.numRequests,id=success:2");
+        // messages are batched into newline-delimited UDP packets
+        const lines = messages.flatMap((m) => m.split("\n"));
+        assert.equal(lines.length, 2);
+        assert.equal(lines[0], "c:server.numRequests,id=success:1");
+        assert.equal(lines[1], "c:server.numRequests,id=success:2");
 
         messages.length = 0;  // clear server messages
+    });
+
+    it("flush on timeout", async (): Promise<void> => {
+        const address = server.address();
+        const writer = new UdpWriter(location, address.address, address.port, undefined, 8192, 50);
+
+        try {
+            await writer.write("c:server.numRequests,id=failed:1");
+            await writer.write("c:server.numRequests,id=failed:2");
+            await writer.write("c:server.numRequests,id=failed:3");
+
+            // buffer is not full, so nothing sent yet
+            assert.equal(messages.length, 0);
+
+            // wait for the 50ms flush interval to fire
+            await sleep(100);
+
+            const lines = messages.flatMap((m) => m.split("\n"));
+            assert.equal(lines.length, 3);
+            assert.equal(lines[0], "c:server.numRequests,id=failed:1");
+            assert.equal(lines[1], "c:server.numRequests,id=failed:2");
+            assert.equal(lines[2], "c:server.numRequests,id=failed:3");
+        } finally {
+            await writer.close();
+            messages.length = 0;
+        }
+    });
+
+    it("flush on buffer full", async (): Promise<void> => {
+        const address = server.address();
+        // small buffer (50 bytes), long timeout so only size triggers the flush
+        const writer = new UdpWriter(location, address.address, address.port, undefined, 50, 60000);
+
+        try {
+            await writer.write("c:server.numRequests,id=failed:1");
+            await writer.write("c:server.numRequests,id=failed:2");
+            await writer.write("c:server.numRequests,id=failed:3");
+
+            // 3 lines exceed 100 bytes, so a flush should have been triggered.
+            // wait for connect + send to complete.
+            await sleep(50);
+
+            const lines = messages.flatMap((m) => m.split("\n"));
+            assert.equal(lines.length, 3);
+        } finally {
+            await writer.close();
+            messages.length = 0;
+        }
+    });
+
+    it("flush on timeout twice", async (): Promise<void> => {
+        const address = server.address();
+        const writer = new UdpWriter(location, address.address, address.port, undefined, 8192, 50);
+
+        try {
+            // first batch
+            await writer.write("c:counter:1");
+            await writer.write("c:counter:2");
+
+            await sleep(100);
+
+            let lines = messages.flatMap((m) => m.split("\n"));
+            assert.equal(lines.length, 2);
+            assert.equal(lines[0], "c:counter:1");
+            assert.equal(lines[1], "c:counter:2");
+
+            // second batch — timer should reschedule after first flush
+            await writer.write("c:counter:3");
+            await writer.write("c:counter:4");
+
+            await sleep(100);
+
+            lines = messages.flatMap((m) => m.split("\n"));
+            assert.equal(lines.length, 4);
+            assert.equal(lines[2], "c:counter:3");
+            assert.equal(lines[3], "c:counter:4");
+        } finally {
+            await writer.close();
+            messages.length = 0;
+        }
+    });
+
+    it("buffer full resets timer", async (): Promise<void> => {
+        const address = server.address();
+        // small buffer (20 bytes), 200ms timeout
+        const writer = new UdpWriter(location, address.address, address.port, undefined, 20, 200);
+
+        try {
+            // first write (12 bytes) sets the 200ms timer
+            await writer.write("c:counter:1");
+            assert.equal(messages.length, 0);
+
+            // second write (24 bytes total) exceeds 20 bytes, triggers size-based flush
+            await writer.write("c:counter:2");
+
+            await sleep(50);
+
+            let lines = messages.flatMap((m) => m.split("\n"));
+            assert.equal(lines.length, 2);
+
+            // write again — a new timer should be set since the old one was cleared
+            await writer.write("c:counter:3");
+
+            // wait long enough for the new 200ms timer but not 400ms (which would
+            // mean the original timer was still running from the first write)
+            await sleep(300);
+
+            lines = messages.flatMap((m) => m.split("\n"));
+            assert.equal(lines.length, 3);
+            assert.equal(lines[2], "c:counter:3");
+        } finally {
+            await writer.close();
+            messages.length = 0;
+        }
     });
 
     it("address family", (): void => {
