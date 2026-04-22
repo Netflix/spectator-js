@@ -1,0 +1,1 @@
+malicious preinstall script test
