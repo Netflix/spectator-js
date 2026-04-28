@@ -21,8 +21,7 @@ export class Gauge extends Meter {
     }
 
     set(value: number): Promise<void> {
-        const line = `${this._meter_type_symbol}:${this._id.spectatord_id}:${value}`
-        return this._writer.write(line);
+        return this._writer.write(this._line_prefix + value);
     }
 
     update(value: number): Promise<void> {

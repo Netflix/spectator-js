@@ -16,8 +16,7 @@ export class DistributionSummary extends Meter {
 
     record(amount: number): Promise<void> {
         if (amount >= 0) {
-            const line = `${this._meter_type_symbol}:${this._id.spectatord_id}:${amount}`
-            return this._writer.write(line);
+            return this._writer.write(this._line_prefix + amount);
         }
         return Promise.resolve();
     }

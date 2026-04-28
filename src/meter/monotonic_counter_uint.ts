@@ -17,7 +17,6 @@ export class MonotonicCounterUint extends Meter {
     }
 
     set(amount: bigint): Promise<void> {
-        const line = `${this._meter_type_symbol}:${this._id.spectatord_id}:${BigInt.asUintN(64, amount)}`
-        return this._writer.write(line);
+        return this._writer.write(this._line_prefix + BigInt.asUintN(64, amount));
     }
 }

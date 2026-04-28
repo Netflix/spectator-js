@@ -78,22 +78,13 @@ export class Id {
 
         let result: string = this.replace_invalid_chars(name);
 
-        const sorted_tags: {[k: string]: string} = Object.fromEntries(Object.entries(tags).sort(
-            (a: [string, string], b: [string, string]): number => {
-                const kSort: number = a[0].localeCompare(b[0]);
-                if (kSort != 0) {
-                    return kSort;
-                } else {
-                    return a[1].localeCompare(b[1]);
-                }
-            }
-        ));
+        const sorted_entries = Object.entries(tags).sort(
+            (a, b) => a[0].localeCompare(b[0]) || a[1].localeCompare(b[1])
+        );
 
-        Object.entries(sorted_tags).forEach(([k, v]: [string, string]): void => {
-            k = this.replace_invalid_chars(k);
-            v = this.replace_invalid_chars(v);
-            result += `,${k}=${v}`;
-        });
+        for (const [k, v] of sorted_entries) {
+            result += `,${this.replace_invalid_chars(k)}=${this.replace_invalid_chars(v)}`;
+        }
 
         return result;
     }
@@ -103,12 +94,11 @@ export class Id {
     }
 
     tags(): Tags {
-        return structuredClone(this._tags);
+        return {...this._tags};
     }
 
     with_tag(k: string, v: string): Id {
-        const new_tags: Tags = structuredClone(this._tags);
-        new_tags[k] = v;
+        const new_tags: Tags = {...this._tags, [k]: v};
         return new Id(this._name, new_tags);
     }
 
@@ -116,7 +106,7 @@ export class Id {
         if (Object.keys(tags).length == 0) {
             return this;
         }
-        const new_tags = {...structuredClone(this._tags), ...tags};
+        const new_tags = {...this._tags, ...tags};
         return new Id(this._name, new_tags);
     }
 

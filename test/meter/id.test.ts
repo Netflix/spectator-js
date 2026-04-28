@@ -97,6 +97,11 @@ describe("Id Tests", (): void => {
         assert.equal(id3.spectatord_id, "baz,aa=1,bb=2");
     });
 
+    it("spectatord id sorts tags by key", (): void => {
+        const id = new Id("foo", {"cc": "3", "aa": "1", "bb": "2"});
+        assert.equal(id.spectatord_id, "foo,aa=1,bb=2,cc=3");
+    });
+
     it("toString", (): void => {
         const id1 = new Id("foo");
         assert.equal(id1.toString(), "Id(name=foo, tags={})");

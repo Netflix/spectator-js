@@ -87,7 +87,7 @@ export class UdpWriter extends Writer {
         }
 
         const payload = this._buffer.join("\n");
-        this._buffer = [];
+        this._buffer.length = 0;
         this._bufferBytes = 0;
 
         return new Promise<void>((resolve) => {

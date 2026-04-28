@@ -46,8 +46,7 @@ export class PercentileTimer extends Meter {
         }
 
         if (elapsed >= 0) {
-            const line = `${this._meter_type_symbol}:${this._id.spectatord_id}:${elapsed}`;
-            return this._writer.write(line);
+            return this._writer.write(this._line_prefix + elapsed);
         }
         return Promise.resolve();
     }
