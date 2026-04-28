@@ -16,12 +16,10 @@ export class AgeGauge extends Meter {
     }
 
     now(): Promise<void> {
-        const line = `${this._meter_type_symbol}:${this._id.spectatord_id}:0`
-        return this._writer.write(line);
+        return this._writer.write(this._line_prefix + "0");
     }
 
     set(seconds: number): Promise<void> {
-        const line = `${this._meter_type_symbol}:${this._id.spectatord_id}:${seconds}`
-        return this._writer.write(line);
+        return this._writer.write(this._line_prefix + seconds);
     }
 }

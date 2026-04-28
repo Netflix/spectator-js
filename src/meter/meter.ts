@@ -4,11 +4,13 @@ import {WriterUnion} from "../writer/new_writer.js";
 export abstract class Meter {
     protected _id: Id;
     protected _meter_type_symbol: string;
+    protected _line_prefix: string;
     protected readonly _writer: WriterUnion;
 
     protected constructor(id: Id, writer: WriterUnion, meter_type_symbol: string) {
         this._id = id;
         this._meter_type_symbol = meter_type_symbol;
+        this._line_prefix = `${meter_type_symbol}:${id.spectatord_id}:`;
         this._writer = writer;
     }
 
