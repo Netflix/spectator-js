@@ -4,7 +4,7 @@ import {createSocket, Socket} from "node:dgram";
 import {isIPv6} from "node:net";
 
 const RESOLVED = Promise.resolve();
-const DEFAULT_MAX_BUFFER_BYTES = 8192;
+const DEFAULT_MAX_BUFFER_BYTES = 32768;
 const DEFAULT_FLUSH_INTERVAL_MS = 15000;
 
 /**
