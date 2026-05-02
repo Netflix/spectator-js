@@ -25,11 +25,20 @@ export function tags_from_env_vars(): Record<string, string> {
     return tags;
 }
 
-export function validate_tags(tags: Record<string, string>): Record<string, string> {
+export function validate_tags(
+    tags: Record<string, string>,
+    trusted_keys?: Set<string>,
+): Record<string, string> {
     const valid_tags: Record<string, string> = {};
 
     for (let key in tags) {
         let val = tags[key];
+        // Keys known to have been validated already (e.g. extra_common_tags
+        // from Config) bypass the length checks.
+        if (trusted_keys !== undefined && trusted_keys.has(key)) {
+            valid_tags[key] = val;
+            continue;
+        }
         // javascript protection checks
         if (typeof key !== "string") key = String(key);
         if (typeof val !== "string") val = String(val);

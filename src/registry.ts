@@ -1,6 +1,6 @@
 import {Config} from "./config.js";
 import {Logger} from "./logger/logger.js";
-import {Id, Tags, tags_toString} from "./meter/id.js";
+import {CommonTagData, Id, Tags, tags_toString} from "./meter/id.js";
 
 import {AgeGauge} from "./meter/age_gauge.js";
 import {Counter} from "./meter/counter.js";
@@ -26,14 +26,19 @@ export class Registry {
     private _config: Config;
     private readonly _writer: WriterUnion;
     private readonly _noop_writer: NoopWriter;
-    private readonly _has_extra_common_tags: boolean;
+    // Precomputed trusted-key set and suffix string for extra_common_tags so
+    // Id construction can skip re-validating and re-regexing them on every call.
+    // Undefined when there are no extra_common_tags.
+    private readonly _common_tag_data?: CommonTagData;
 
     constructor(config: Config = new Config()) {
         this._config = config;
         this.logger = config.logger;
         this._writer = new_writer(this._config.location, this.logger);
         this._noop_writer = new NoopWriter();
-        this._has_extra_common_tags = Object.keys(this._config.extra_common_tags).length > 0;
+        if (Object.keys(this._config.extra_common_tags).length > 0) {
+            this._common_tag_data = Id.precompute_common_tag_data(this._config.extra_common_tags);
+        }
         this.logger.debug(`Create Registry with extra_common_tags=${tags_toString(this._config.extra_common_tags)}`);
     }
 
@@ -62,14 +67,14 @@ export class Registry {
          * Create a new MeterId, which applies any configured extra common tags,
          * and can be used as an input to the *_with_id Registry methods.
          */
-        if (!this._has_extra_common_tags) {
+        if (this._common_tag_data === undefined) {
             return new Id(name, tags);
         }
 
-        // Merge first so we only build one Id (one validate + sort + regex pass).
-        // extra_common_tags are spread last to win on key collisions, matching the
-        // previous semantics of with_tags(extra_common_tags) overlaying user tags.
-        return new Id(name, {...tags, ...this._config.extra_common_tags});
+        // extra_common_tags are spread last so they win on key collisions,
+        // matching the previous semantics of with_tags(extra_common_tags).
+        const merged: Tags = {...tags, ...this._config.extra_common_tags};
+        return new Id(name, merged, undefined, this._common_tag_data);
     }
 
     private create<T>(MeterClass: new (id: Id, writer: WriterUnion) => T, id: Id): T {

@@ -3,6 +3,17 @@ import {validate_tags} from "../common_tags.js";
 
 export type Tags = Record<string, string>;
 
+/**
+ * @internal
+ * Precomputed view of a set of already-validated tags (e.g. extra_common_tags
+ * on a Registry) so we don't re-validate or re-regex them on every Id
+ * construction. Build via {@link Id.precompute_common_tag_data}.
+ */
+export type CommonTagData = {
+    readonly trusted_keys: Set<string>;
+    readonly suffix: string;
+};
+
 export function tags_toString(tags: Tags | undefined): string {
     if (!tags) {
         return "{}"
@@ -32,21 +43,37 @@ export class Id {
     public invalid: boolean = false;
     public spectatord_id: string;
 
-    constructor(name: string, tags?: Tags, logger?: Logger) {
+    constructor(name: string, tags?: Tags, logger?: Logger, common_tag_data?: CommonTagData) {
         // initialization order in this constructor matters, for logging and testing purposes
         this._logger = logger ?? get_logger();
 
         this._name = name;
 
-        this._tags = tags ? this.validate_tags_for_id(tags) : {};
+        this._tags = tags ? this.validate_tags_for_id(tags, common_tag_data?.trusted_keys) : {};
 
-        this.spectatord_id = this.to_spectatord_id(this._name, this._tags);
+        this.spectatord_id = this.to_spectatord_id(this._name, this._tags, common_tag_data);
     }
 
-    private validate_tags_for_id(tags: Tags): Tags {
-        const valid_tags: Record<string, string> = validate_tags(tags);
+    /**
+     * Build a {@link CommonTagData} bundle from a set of tags that are known to
+     * be already validated (e.g. extra_common_tags from Config). The bundle
+     * captures one regex + concat pass so that subsequent Id constructions can
+     * reuse the result instead of redoing the work.
+     */
+    static precompute_common_tag_data(tags: Tags): CommonTagData {
+        const trusted_keys = new Set<string>();
+        let suffix = "";
+        for (const k in tags) {
+            trusted_keys.add(k);
+            suffix += `,${Id.replace_invalid_chars(k)}=${Id.replace_invalid_chars(tags[k])}`;
+        }
+        return {trusted_keys, suffix};
+    }
 
-        if (Object.entries(tags).length != Object.entries(valid_tags).length) {
+    private validate_tags_for_id(tags: Tags, trusted_keys?: Set<string>): Tags {
+        const valid_tags: Record<string, string> = validate_tags(tags, trusted_keys);
+
+        if (Object.keys(tags).length !== Object.keys(valid_tags).length) {
             this._logger.warn(`Id(name=${this._name}, tags=${tags_toString(tags)}) is invalid due to tag keys or ` +
             `values which are too short (k < 2, v < 1), or too long (k > 60, v > 120); proceeding with truncated ` +
             `tags Id(name=${this._name}, tags=${tags_toString(valid_tags)})`);
@@ -55,11 +82,11 @@ export class Id {
         return valid_tags;
     }
 
-    private replace_invalid_chars(s: string): string {
+    private static replace_invalid_chars(s: string): string {
         return s.replace(Id.INVALID_CHARS, "_");
     }
 
-    private to_spectatord_id(name: string, tags?: Tags): string {
+    private to_spectatord_id(name: string, tags?: Tags, common_tag_data?: CommonTagData): string {
         // javascript protection check
         if (typeof name !== "string") {
             name = String(name);
@@ -72,18 +99,18 @@ export class Id {
             return '';
         }
 
-        if (tags == undefined) {
-            tags = {};
+        let result: string = Id.replace_invalid_chars(name);
+
+        if (common_tag_data !== undefined) {
+            result += common_tag_data.suffix;
         }
 
-        let result: string = this.replace_invalid_chars(name);
-
-        const sorted_entries = Object.entries(tags).sort(
-            (a, b) => a[0].localeCompare(b[0]) || a[1].localeCompare(b[1])
-        );
-
-        for (const [k, v] of sorted_entries) {
-            result += `,${this.replace_invalid_chars(k)}=${this.replace_invalid_chars(v)}`;
+        if (tags !== undefined) {
+            const trusted = common_tag_data?.trusted_keys;
+            for (const k in tags) {
+                if (trusted?.has(k)) continue;
+                result += `,${Id.replace_invalid_chars(k)}=${Id.replace_invalid_chars(tags[k])}`;
+            }
         }
 
         return result;

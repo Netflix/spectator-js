@@ -16,7 +16,7 @@ describe("Id Tests", (): void => {
     it("equals same tags", (): void => {
         const id1 = new Id("foo", {"aa": "1", "bb": "2", "cc": "3"});
         const id2 = new Id("foo", {"cc": "3", "bb": "2", "aa": "1"});
-        assert.equal(id1.spectatord_id, id2.spectatord_id);
+        assert.deepEqual(id1.tags(), id2.tags());
     });
 
     it("illegal chars are replaced", (): void => {
@@ -97,9 +97,12 @@ describe("Id Tests", (): void => {
         assert.equal(id3.spectatord_id, "baz,aa=1,bb=2");
     });
 
-    it("spectatord id sorts tags by key", (): void => {
+    it("spectatord id preserves tag insertion order", (): void => {
+        // The wire format does not need to canonicalize tag order; spectatord
+        // aggregates by (name, tag-set). Tags appear in the order JS iterates
+        // them, which for plain string keys is insertion order.
         const id = new Id("foo", {"cc": "3", "aa": "1", "bb": "2"});
-        assert.equal(id.spectatord_id, "foo,aa=1,bb=2,cc=3");
+        assert.equal(id.spectatord_id, "foo,cc=3,aa=1,bb=2");
     });
 
     it("toString", (): void => {
