@@ -26,12 +26,14 @@ export class Registry {
     private _config: Config;
     private readonly _writer: WriterUnion;
     private readonly _noop_writer: NoopWriter;
+    private readonly _has_extra_common_tags: boolean;
 
     constructor(config: Config = new Config()) {
         this._config = config;
         this.logger = config.logger;
         this._writer = new_writer(this._config.location, this.logger);
         this._noop_writer = new NoopWriter();
+        this._has_extra_common_tags = Object.keys(this._config.extra_common_tags).length > 0;
         this.logger.debug(`Create Registry with extra_common_tags=${tags_toString(this._config.extra_common_tags)}`);
     }
 
@@ -60,13 +62,14 @@ export class Registry {
          * Create a new MeterId, which applies any configured extra common tags,
          * and can be used as an input to the *_with_id Registry methods.
          */
-        let new_meter_id: Id = new Id(name, tags);
-
-        if (Object.keys(this._config.extra_common_tags).length > 0) {
-            new_meter_id = new_meter_id.with_tags(this._config.extra_common_tags);
+        if (!this._has_extra_common_tags) {
+            return new Id(name, tags);
         }
 
-        return new_meter_id;
+        // Merge first so we only build one Id (one validate + sort + regex pass).
+        // extra_common_tags are spread last to win on key collisions, matching the
+        // previous semantics of with_tags(extra_common_tags) overlaying user tags.
+        return new Id(name, {...tags, ...this._config.extra_common_tags});
     }
 
     private create<T>(MeterClass: new (id: Id, writer: WriterUnion) => T, id: Id): T {
