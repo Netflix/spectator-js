@@ -36,8 +36,9 @@ export class Registry {
         this.logger = config.logger;
         this._writer = new_writer(this._config.location, this.logger);
         this._noop_writer = new NoopWriter();
-        if (Object.keys(this._config.extra_common_tags).length > 0) {
+        for (const _k in this._config.extra_common_tags) {
             this._common_tag_data = Id.precompute_common_tag_data(this._config.extra_common_tags);
+            break;
         }
         this.logger.debug(`Create Registry with extra_common_tags=${tags_toString(this._config.extra_common_tags)}`);
     }
@@ -67,14 +68,7 @@ export class Registry {
          * Create a new MeterId, which applies any configured extra common tags,
          * and can be used as an input to the *_with_id Registry methods.
          */
-        if (this._common_tag_data === undefined) {
-            return new Id(name, tags);
-        }
-
-        // extra_common_tags are spread last so they win on key collisions,
-        // matching the previous semantics of with_tags(extra_common_tags).
-        const merged: Tags = {...tags, ...this._config.extra_common_tags};
-        return new Id(name, merged, undefined, this._common_tag_data);
+        return new Id(name, tags, undefined, this._common_tag_data);
     }
 
     private create<T>(MeterClass: new (id: Id, writer: WriterUnion) => T, id: Id): T {

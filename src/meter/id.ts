@@ -10,6 +10,7 @@ export type Tags = Record<string, string>;
  * construction. Build via {@link Id.precompute_common_tag_data}.
  */
 export type CommonTagData = {
+    readonly tags: Tags;
     readonly trusted_keys: Set<string>;
     readonly suffix: string;
 };
@@ -38,7 +39,10 @@ export class Id {
 
     private readonly _logger: Logger;
     private readonly _name: string;
+    // User-supplied tags only. Common tags live in _common_tag_data so we don't
+    // pay for re-validating, re-regexing, or re-iterating them per Id.
     private readonly _tags: Tags;
+    private readonly _common_tag_data?: CommonTagData;
 
     public invalid: boolean = false;
     public spectatord_id: string;
@@ -48,8 +52,9 @@ export class Id {
         this._logger = logger ?? get_logger();
 
         this._name = name;
+        this._common_tag_data = common_tag_data;
 
-        this._tags = tags ? this.validate_tags_for_id(tags, common_tag_data?.trusted_keys) : {};
+        this._tags = tags ? this.validate_tags_for_id(tags) : {};
 
         this.spectatord_id = this.to_spectatord_id(this._name, this._tags, common_tag_data);
     }
@@ -67,11 +72,11 @@ export class Id {
             trusted_keys.add(k);
             suffix += `,${Id.replace_invalid_chars(k)}=${Id.replace_invalid_chars(tags[k])}`;
         }
-        return {trusted_keys, suffix};
+        return {tags, trusted_keys, suffix};
     }
 
-    private validate_tags_for_id(tags: Tags, trusted_keys?: Set<string>): Tags {
-        const valid_tags: Record<string, string> = validate_tags(tags, trusted_keys);
+    private validate_tags_for_id(tags: Tags): Tags {
+        const valid_tags: Record<string, string> = validate_tags(tags);
 
         if (Object.keys(tags).length !== Object.keys(valid_tags).length) {
             this._logger.warn(`Id(name=${this._name}, tags=${tags_toString(tags)}) is invalid due to tag keys or ` +
@@ -121,23 +126,28 @@ export class Id {
     }
 
     tags(): Tags {
-        return {...this._tags};
+        // Merge with common tags on demand. extra_common_tags are spread last so
+        // they win on key collisions, matching the wire-format precedence.
+        if (this._common_tag_data === undefined) {
+            return {...this._tags};
+        }
+        return {...this._tags, ...this._common_tag_data.tags};
     }
 
     with_tag(k: string, v: string): Id {
         const new_tags: Tags = {...this._tags, [k]: v};
-        return new Id(this._name, new_tags);
+        return new Id(this._name, new_tags, undefined, this._common_tag_data);
     }
 
     with_tags(tags: Tags): Id {
-        if (Object.keys(tags).length == 0) {
-            return this;
+        for (const _k in tags) {
+            const new_tags = {...this._tags, ...tags};
+            return new Id(this._name, new_tags, undefined, this._common_tag_data);
         }
-        const new_tags = {...this._tags, ...tags};
-        return new Id(this._name, new_tags);
+        return this;
     }
 
     toString(): string {
-        return `Id(name=${this._name}, tags=${tags_toString(this._tags)})`;
+        return `Id(name=${this._name}, tags=${tags_toString(this.tags())})`;
     }
 }
