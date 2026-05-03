@@ -96,7 +96,7 @@ export class Id {
         return s.replace(Id.INVALID_CHARS, "_");
     }
 
-    private to_spectatord_id(name: string, tags?: Tags, common_tag_data?: CommonTagData): string {
+    private to_spectatord_id(name: string, tags: Tags, common_tag_data?: CommonTagData): string {
         // javascript protection check
         if (typeof name !== "string") {
             name = String(name);
@@ -115,12 +115,10 @@ export class Id {
             result += common_tag_data.suffix;
         }
 
-        if (tags !== undefined) {
-            const trusted = common_tag_data?.trusted_keys;
-            for (const k in tags) {
-                if (trusted?.has(k)) continue;
-                result += `,${Id.replace_invalid_chars(k)}=${Id.replace_invalid_chars(tags[k])}`;
-            }
+        const trusted = common_tag_data?.trusted_keys;
+        for (const k in tags) {
+            if (trusted?.has(k)) continue;
+            result += `,${Id.replace_invalid_chars(k)}=${Id.replace_invalid_chars(tags[k])}`;
         }
 
         return result;
