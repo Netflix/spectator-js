@@ -42,7 +42,9 @@ export class UdpWriter extends Writer {
     write(line: string): Promise<void> {
         if (this._closed) return RESOLVED;
         this._buffer.push(line);
-        this._bufferBytes += line.length + 1;
+        // Byte length, not character length, so non-ASCII tag values can't
+        // silently push the packet past UDP MTU when the buffer reports under-budget.
+        this._bufferBytes += Buffer.byteLength(line) + 1;
 
         if (this._bufferBytes >= this._maxBufferBytes) {
             this.flush();

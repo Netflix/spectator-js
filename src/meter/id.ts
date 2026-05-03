@@ -78,7 +78,12 @@ export class Id {
     private validate_tags_for_id(tags: Tags): Tags {
         const valid_tags: Record<string, string> = validate_tags(tags);
 
-        if (Object.keys(tags).length !== Object.keys(valid_tags).length) {
+        let input_count = 0;
+        for (const _k in tags) input_count++;
+        let valid_count = 0;
+        for (const _k in valid_tags) valid_count++;
+
+        if (input_count !== valid_count) {
             this._logger.warn(`Id(name=${this._name}, tags=${tags_toString(tags)}) is invalid due to tag keys or ` +
             `values which are too short (k < 2, v < 1), or too long (k > 60, v > 120); proceeding with truncated ` +
             `tags Id(name=${this._name}, tags=${tags_toString(valid_tags)})`);
