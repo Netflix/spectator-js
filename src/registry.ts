@@ -36,6 +36,9 @@ export class Registry {
         this.logger = config.logger;
         this._writer = new_writer(this._config.location, this.logger);
         this._noop_writer = new NoopWriter();
+        // "Is non-empty?" check on a Record<string, string>. for-in + break is
+        // O(1) and allocation-free, vs Object.keys(...).length which would
+        // enumerate every key into an array just to read its length.
         for (const _k in this._config.extra_common_tags) {
             this._common_tag_data = Id.precompute_common_tag_data(this._config.extra_common_tags);
             break;

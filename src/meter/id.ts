@@ -143,6 +143,9 @@ export class Id {
     }
 
     with_tags(tags: Tags): Id {
+        // "Is non-empty?" check on a Record<string, string>. for-in + early
+        // return is O(1) and allocation-free, vs Object.keys(...).length which
+        // would enumerate every key into an array just to read its length.
         for (const _k in tags) {
             const new_tags = {...this._tags, ...tags};
             return new Id(this._name, new_tags, undefined, this._common_tag_data);
