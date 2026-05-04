@@ -38,7 +38,7 @@ export class PercentileTimer extends Meter {
 
         if (typeof seconds === 'bigint') {
             elapsed = Number(seconds) / 1e9;
-        } else if (seconds instanceof Array) {
+        } else if (Array.isArray(seconds)) {
             elapsed = seconds[0] + (seconds[1] / 1e9);
         } else {
             nanos = nanos || 0;

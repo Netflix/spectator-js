@@ -28,11 +28,8 @@ export function tags_from_env_vars(): Record<string, string> {
 export function validate_tags(tags: Record<string, string>): Record<string, string> {
     const valid_tags: Record<string, string> = {};
 
-    for (let key in tags) {
-        let val = tags[key];
-        // javascript protection checks
-        if (typeof key !== "string") key = String(key);
-        if (typeof val !== "string") val = String(val);
+    for (const key in tags) {
+        const val = tags[key];
         if (key.length < 2 || key.length > 60 || val.length < 1 || val.length > 120) continue;
         valid_tags[key] = val;
     }

@@ -1,6 +1,6 @@
 import {Config} from "./config.js";
 import {Logger} from "./logger/logger.js";
-import {Id, Tags, tags_toString} from "./meter/id.js";
+import {CommonTagData, Id, Tags, tags_toString} from "./meter/id.js";
 
 import {AgeGauge} from "./meter/age_gauge.js";
 import {Counter} from "./meter/counter.js";
@@ -26,12 +26,23 @@ export class Registry {
     private _config: Config;
     private readonly _writer: WriterUnion;
     private readonly _noop_writer: NoopWriter;
+    // Precomputed trusted-key set and suffix string for extra_common_tags so
+    // Id construction can skip re-validating and re-regexing them on every call.
+    // Undefined when there are no extra_common_tags.
+    private readonly _common_tag_data?: CommonTagData;
 
     constructor(config: Config = new Config()) {
         this._config = config;
         this.logger = config.logger;
         this._writer = new_writer(this._config.location, this.logger);
         this._noop_writer = new NoopWriter();
+        // "Is non-empty?" check on a Record<string, string>. for-in + break is
+        // O(1) and allocation-free, vs Object.keys(...).length which would
+        // enumerate every key into an array just to read its length.
+        for (const _k in this._config.extra_common_tags) {
+            this._common_tag_data = Id.precompute_common_tag_data(this._config.extra_common_tags);
+            break;
+        }
         this.logger.debug(`Create Registry with extra_common_tags=${tags_toString(this._config.extra_common_tags)}`);
     }
 
@@ -60,13 +71,7 @@ export class Registry {
          * Create a new MeterId, which applies any configured extra common tags,
          * and can be used as an input to the *_with_id Registry methods.
          */
-        let new_meter_id: Id = new Id(name, tags);
-
-        if (Object.keys(this._config.extra_common_tags).length > 0) {
-            new_meter_id = new_meter_id.with_tags(this._config.extra_common_tags);
-        }
-
-        return new_meter_id;
+        return new Id(name, tags, undefined, this._common_tag_data);
     }
 
     private create<T>(MeterClass: new (id: Id, writer: WriterUnion) => T, id: Id): T {
