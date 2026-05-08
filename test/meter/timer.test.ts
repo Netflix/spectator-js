@@ -63,4 +63,56 @@ describe("Timer Tests", (): void => {
 
         Object.defineProperty(process, "hrtime", f);
     });
+
+    it("start stopwatch", async (): Promise<void> => {
+        const t = new Timer(tid, new MemoryWriter());
+        const writer = t.writer() as MemoryWriter;
+
+        const stopwatch = t.start();
+        await stopwatch.stop();
+
+        assert.match(writer.last_line(), /^t:timer:/);
+    });
+
+    it("stopwatch records once", async (): Promise<void> => {
+        const t = new Timer(tid, new MemoryWriter());
+        const writer = t.writer() as MemoryWriter;
+
+        const stopwatch = t.start();
+        await stopwatch.stop();
+        const first = writer.last_line();
+        await stopwatch.stop();
+
+        assert.equal(writer.get().length, 1);
+        assert.equal(writer.last_line(), first);
+    });
+
+    it("time records successful callback", async (): Promise<void> => {
+        const t = new Timer(tid, new MemoryWriter());
+        const writer = t.writer() as MemoryWriter;
+
+        const result = await t.time((): string => "ok");
+
+        assert.equal(result, "ok");
+        assert.match(writer.last_line(), /^t:timer:/);
+    });
+
+    it("time records rejected callback", async (): Promise<void> => {
+        const t = new Timer(tid, new MemoryWriter());
+        const writer = t.writer() as MemoryWriter;
+        let message = "";
+
+        try {
+            await t.time((): never => {
+                throw new Error("boom");
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                message = error.message;
+            }
+        }
+
+        assert.equal(message, "boom");
+        assert.match(writer.last_line(), /^t:timer:/);
+    });
 });

@@ -1,6 +1,7 @@
 import {Id} from "./id.js";
 import {Meter} from "./meter.js"
 import {new_writer, WriterUnion} from "../writer/new_writer.js";
+import {Stopwatch} from "./stopwatch.js";
 
 export class Timer extends Meter {
     /**
@@ -9,6 +10,25 @@ export class Timer extends Meter {
 
     constructor(id: Id, writer: WriterUnion = new_writer("none")) {
         super(id, writer, "t");
+    }
+
+    /**
+     * Start a stopwatch that records elapsed time when stopped.
+     */
+    start(): Stopwatch {
+        return new Stopwatch(this);
+    }
+
+    /**
+     * Run a callback and record its elapsed time, including when the callback throws or rejects.
+     */
+    async time<T>(fn: () => T | Promise<T>): Promise<T> {
+        const stopwatch = this.start();
+        try {
+            return await fn();
+        } finally {
+            await stopwatch.stop();
+        }
     }
 
     /**
