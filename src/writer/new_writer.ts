@@ -3,16 +3,18 @@ import {NoopWriter} from "./noop_writer.js";
 import {MemoryWriter} from "./memory_writer.js";
 import {FileWriter} from "./file_writer.js";
 import {UdpWriter} from "./udp_writer.js";
+import {UdsWriter} from "./uds_writer.js";
 import {URL} from "node:url";
 import {StderrWriter} from "./stderr_writer.js";
 import {StdoutWriter} from "./stdout_writer.js";
 
-export type WriterUnion = FileWriter | MemoryWriter | NoopWriter | StderrWriter | StdoutWriter | UdpWriter;
+export type WriterUnion = FileWriter | MemoryWriter | NoopWriter | StderrWriter | StdoutWriter | UdpWriter | UdsWriter;
 
 export function is_valid_output_location(location: string): boolean {
-    return ["none", "memory", "stderr", "stdout", "udp"].includes(location) ||
+    return ["none", "memory", "stderr", "stdout", "udp", "unix"].includes(location) ||
         location.startsWith("file://") ||
-        location.startsWith("udp://");
+        location.startsWith("udp://") ||
+        location.startsWith("unix://");
 }
 
 export function new_writer(location: string, logger?: Logger): WriterUnion {
@@ -37,6 +39,9 @@ export function new_writer(location: string, logger?: Logger): WriterUnion {
     if (location == "udp") {
         location = "udp://127.0.0.1:1234";
     }
+    if (location == "unix") {
+        location = "unix:///run/spectatord/spectatord.unix";
+    }
     if (location.startsWith("file://")) {
         return new FileWriter(location, log);
     }
@@ -45,6 +50,11 @@ export function new_writer(location: string, logger?: Logger): WriterUnion {
         // convert IPv6 bracket notation [::1] to ::1 for the socket api
         const hostname = parsed.hostname.replace("[::1]", "::1");
         return new UdpWriter(location, hostname, Number(parsed.port), log);
+    }
+    if (location.startsWith("unix://")) {
+        // unix:///abs/path/socket — strip the scheme to get the filesystem path.
+        const path = location.slice("unix://".length);
+        return new UdsWriter(location, path, log);
     }
 
     throw new Error(`unsupported Writer location: ${location}`);

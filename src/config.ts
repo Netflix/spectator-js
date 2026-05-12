@@ -17,31 +17,27 @@ export class Config {
      *   * `memory` - Write metrics to memory. Useful for testing.
      *   * `stderr` - Write metrics to standard error.
      *   * `stdout` - Write metrics to standard output.
-     *   * `udp`    - Write metrics to the default spectatord UDP port. This is the default value.
-     *   * `file:///path/to/file` - Write metrics to a file.
-     *   * `udp://host:port`      - Write metrics to a UDP socket.
+     *   * `udp`    - Write metrics to the default spectatord UDP port.
+     *   * `unix`   - Write metrics to the default spectatord UDS path (/run/spectatord/spectatord.unix). This is the default value.
+     *   * `file:///path/to/file`   - Write metrics to a file.
+     *   * `udp://host:port`        - Write metrics to a UDP socket.
+     *   * `unix:///path/to/socket` - Write metrics to a SOCK_DGRAM Unix domain socket.
      *
      * The output location can be overridden by configuring an environment variable SPECTATOR_OUTPUT_LOCATION
      * with one of the values listed above. Overriding the output location may be useful for integration testing.
      *
-     * Unix Domain Sockets are not supported in this library, because Node.js removed the `unix_dgram` package
-     * from the standard library in 2011, as a part of portability concerns for Windows.
-     *
-     * https://github.com/nodejs/node/issues/29339
-     *
-     * There is a third-party `unix-dgram` library, but it contains C++ source code, which complicates the build,
-     * and it introduces synchronous calls in the context of callbacks. We want this library to be as low-friction
-     * as possible, so we will not adopt this package. If you need UDS support, use the C++, Go, or Python libraries
-     * instead.
-     *
-     * https://github.com/bnoordhuis/node-unix-dgram
+     * UDS support is provided by the `node-unix-socket` package (napi-rs based, ships prebuilt binaries
+     * for common Linux/macOS targets — no node-gyp / build toolchain required at install time). spectatord's
+     * UDS endpoint accepts SOCK_DGRAM datagrams and supports higher throughput than the UDP listener
+     * (~1M req/sec with batching vs ~430K req/sec for UDP). Use `unix` / `unix://...` if your workload
+     * is hot enough to benefit from it.
      */
 
     location: string;
     extra_common_tags: Tags;
     logger: Logger;
 
-    constructor(location: string = "udp", extra_common_tags: Tags = {}, logger: Logger = get_logger()) {
+    constructor(location: string = "unix", extra_common_tags: Tags = {}, logger: Logger = get_logger()) {
         this.location = this.calculate_location(location);
         this.extra_common_tags = this.calculate_extra_common_tags(extra_common_tags);
         this.logger = logger;

@@ -33,13 +33,13 @@ describe("Registry Tests", (): void => {
     });
 
     it("default config", async (): Promise<void> => {
-        const r = new Registry();
+        const r = new Registry(new Config("udp"));
         assert.isTrue(r.writer() instanceof UdpWriter);
         await r.close();
     });
 
     it("get config", async (): Promise<void> => {
-        const r = new Registry();
+        const r = new Registry(new Config("udp"));
         assert.equal(r.config().location, "udp", )
         assert.deepEqual(r.config().extra_common_tags, {})
         await r.close();

@@ -32,7 +32,7 @@ describe("Config Tests", (): void => {
         setup_environment();
         const config = new Config();
         assert.deepEqual(all_expected_tags(), config.extra_common_tags);
-        assert.equal(config.location, "udp");
+        assert.equal(config.location, "unix");
         clear_environment();
     });
 
@@ -52,7 +52,7 @@ describe("Config Tests", (): void => {
     it("extra common tags", (): void => {
         setup_environment();
         const config = new Config(undefined, {"extra-tag": "foo"});
-        assert.equal(config.location, "udp");
+        assert.equal(config.location, "unix");
         assert.deepEqual(config.extra_common_tags, {"extra-tag": "foo", "nf.container": "main", "nf.process": "nodejs"});
         clear_environment();
     });
