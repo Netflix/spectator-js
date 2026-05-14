@@ -31,3 +31,4 @@ export {NoopWriter} from "./writer/noop_writer.js";
 export {StderrWriter} from "./writer/stderr_writer.js";
 export {StdoutWriter} from "./writer/stdout_writer.js";
 export {UdpWriter} from "./writer/udp_writer.js";
+export {UdsWriter} from "./writer/uds_writer.js";

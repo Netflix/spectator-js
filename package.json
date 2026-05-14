@@ -1,6 +1,6 @@
 {
   "name": "nflx-spectator",
-  "version": "3.1.0-rc.5",
+  "version": "3.1.0-rc.6",
   "license": "Apache-2.0",
   "homepage": "https://github.com/Netflix/spectator-js",
   "author": "Netflix Telemetry Engineering <netflix-atlas@googlegroups.com>",
@@ -56,5 +56,8 @@
     "test": "mocha 'esm/test/**/*.test.js'",
     "test-with-coverage": "c8 mocha --reporter min 'esm/test/**/*.test.js'",
     "check-coverage": "c8 check-coverage --lines 90 mocha 'esm/test/**/*.test.js'"
+  },
+  "dependencies": {
+    "node-unix-socket": "^0.2.7"
   }
 }
