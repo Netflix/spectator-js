@@ -63,4 +63,24 @@ describe("PercentileTimer Tests", (): void => {
 
         Object.defineProperty(process, "hrtime", f);
     });
+
+    it("start stopwatch", async (): Promise<void> => {
+        const t = new PercentileTimer(tid, new MemoryWriter());
+        const writer = t.writer() as MemoryWriter;
+
+        const stopwatch = t.start();
+        await stopwatch.stop();
+
+        assert.match(writer.last_line(), /^T:percentile_timer:/);
+    });
+
+    it("time records callback", async (): Promise<void> => {
+        const t = new PercentileTimer(tid, new MemoryWriter());
+        const writer = t.writer() as MemoryWriter;
+
+        const result = await t.time(async (): Promise<string> => "ok");
+
+        assert.equal(result, "ok");
+        assert.match(writer.last_line(), /^T:percentile_timer:/);
+    });
 });

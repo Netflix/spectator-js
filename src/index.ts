@@ -19,6 +19,7 @@ export {MonotonicCounter} from "./meter/monotonic_counter.js";
 export {MonotonicCounterUint} from "./meter/monotonic_counter_uint.js";
 export {PercentileDistributionSummary} from "./meter/percentile_dist_summary.js";
 export {PercentileTimer} from "./meter/percentile_timer.js";
+export {Stopwatch} from "./meter/stopwatch.js";
 export {Timer} from "./meter/timer.js";
 
 export {new_writer} from "./writer/new_writer.js";
