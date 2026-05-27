@@ -54,7 +54,21 @@ export function new_writer(location: string, logger?: Logger): WriterUnion {
     if (location.startsWith("unix://")) {
         // unix:///abs/path/socket — strip the scheme to get the filesystem path.
         const path = location.slice("unix://".length);
-        return new UdsWriter(location, path, log);
+        try {
+            return new UdsWriter(location, path, log);
+        } catch (err) {
+            // UDS init only really fails when the spectatord socket is missing
+            // or the client bind path isn't writable — both signal "this host
+            // has no spectatord." Fall back to UDP so tests and dev
+            // environments behave like the historical UDP default (silent
+            // drop) instead of crashing at Registry construction. The
+            // underlying errno isn't reliably preserved across the
+            // statSync/node-unix-socket boundary (node-unix-socket surfaces
+            // bind errors with code='Unknown'), so we can't narrow by code —
+            // catching all errors here is intentional.
+            log.warn(`UDS unavailable (${(err as Error).message}); falling back to udp://127.0.0.1:1234`);
+            return new UdpWriter("udp://127.0.0.1:1234", "127.0.0.1", 1234, log);
+        }
     }
 
     throw new Error(`unsupported Writer location: ${location}`);
