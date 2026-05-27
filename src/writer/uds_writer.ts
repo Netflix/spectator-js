@@ -49,7 +49,9 @@ export class UdsWriter extends Writer {
         } catch (err) {
             const code = (err as NodeJS.ErrnoException).code;
             if (code === "ENOENT") {
-                throw new Error(`UDS destination does not exist: ${destPath}`);
+                const wrapped = new Error(`UDS destination does not exist: ${destPath}`) as NodeJS.ErrnoException;
+                wrapped.code = "ENOENT";
+                throw wrapped;
             }
             throw err;
         }
