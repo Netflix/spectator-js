@@ -2,6 +2,8 @@ import {Writer} from "./writer.js";
 import {get_logger, Logger} from "../logger/logger.js";
 import {DgramSocket} from "node-unix-socket";
 import {statSync, unlinkSync} from "node:fs";
+import {tmpdir} from "node:os";
+import {join} from "node:path";
 
 const RESOLVED = Promise.resolve();
 const DEFAULT_MAX_BUFFER_BYTES = 32768;
@@ -56,10 +58,12 @@ export class UdsWriter extends Writer {
         }
 
         // SOCK_DGRAM unix sockets need a return-address bind on the client
-        // side. Use pid + a short random suffix so multiple Registries in
-        // the same process don't collide.
+        // side. Bind in tmpdir rather than next to destPath — spectatord's
+        // socket directory (e.g. /run/spectatord) is typically not writable
+        // by the client process. Pid + random suffix prevents collisions
+        // between multiple Registries in the same process.
         const suffix = Math.random().toString(36).slice(2, 8);
-        this._clientPath = `${destPath}.${process.pid}.${suffix}`;
+        this._clientPath = join(tmpdir(), `spectator-js.${process.pid}.${suffix}.unix`);
         this._logger.debug(`initialize UdsWriter to ${location}`);
 
         this._socket = new DgramSocket();
