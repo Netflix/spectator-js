@@ -5,12 +5,13 @@ import {setImmediate} from "node:timers";
 const MAX_DURATION_SECS = 2 * 60;
 
 function printUsage(): void {
-    console.error("Usage: sample [writer_type]");
+    console.error("Usage: sample [writer_type] [buffer_size_bytes]");
     console.error("  writer_type: udp or unix (default is unix)");
+    console.error("  buffer_size_bytes: positive integer (default is the writer default, 32768)");
 }
 
 const args = process.argv.slice(2);
-if (args.length > 1) {
+if (args.length > 2) {
     printUsage();
     process.exit(1);
 }
@@ -22,13 +23,24 @@ if (writerType !== "udp" && writerType !== "unix") {
     process.exit(1);
 }
 
-const registry = new Registry(new Config(writerType));
+let bufferSize: number | undefined;
+if (args[1] !== undefined) {
+    bufferSize = Number(args[1]);
+    if (!Number.isInteger(bufferSize) || bufferSize <= 0) {
+        console.error(`Invalid buffer size: ${args[1]}`);
+        printUsage();
+        process.exit(1);
+    }
+}
+
+const registry = new Registry(new Config(writerType, undefined, undefined, bufferSize));
 const tags = {
     location: writerType,
     version: "correct-horse-battery-staple",
 };
 
 console.log(`Writer Type: ${writerType}`);
+console.log(`Buffer Size: ${bufferSize ?? "default (32768)"}`);
 
 // Node is single-threaded, so there is only ever one worker driving the loop.
 const numThreads = 1;
@@ -37,10 +49,11 @@ const numThreads = 1;
 // loop runs, flushing the *entire* accumulated buffer as one datagram. A
 // synchronous loop never yields, so the buffer balloons and the first drain
 // tries to send an oversized datagram -> EMSGSIZE ("Message too long"). Yield
-// once we've buffered ~16KB so each datagram stays well under the OS limit.
-// This must be bound by bytes, not wall-clock time: at high throughput even a
-// sub-second interval buffers megabytes, far past the datagram size limit.
-const YIELD_BYTES = 16 * 1024;
+// once we've buffered roughly one buffer's worth so the writer's size-triggered
+// flush runs and each datagram is ~buffer_size_bytes. This must be bound by
+// bytes, not wall-clock time: at high throughput even a sub-second interval
+// buffers megabytes, far past the datagram size limit.
+const YIELD_BYTES = bufferSize ?? 32 * 1024;  // mirror the writer default when unset
 // Approximate on-wire size of one tagged counter line, e.g.
 // "c:sample.counter,location=unix,version=correct-horse-battery-staple:1\n".
 const LINE_BYTES = `c:sample.counter,location=${writerType},version=correct-horse-battery-staple:1`.length + 1;
