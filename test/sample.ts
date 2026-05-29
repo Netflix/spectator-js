@@ -30,20 +30,24 @@ console.log(`Writer Type: ${writerType}`);
 // Node is single-threaded, so there is only ever one worker driving the loop.
 const numThreads = 1;
 
+const YIELD_INTERVAL_NS = 10n * 1_000_000_000n;
+
 let iterations = 0;
 const start = process.hrtime.bigint();
 const deadline = start + BigInt(MAX_DURATION_SECS) * 1_000_000_000n;
+let nextYield = start + YIELD_INTERVAL_NS;
 
-while (process.hrtime.bigint() < deadline) {
+for (let now = start; now < deadline; now = process.hrtime.bigint()) {
     void counter.increment();
     iterations++;
     // The writer buffers synchronously and only flushes when the event loop
     // runs (timer + chained drains). A fully synchronous loop would block the
     // event loop for the whole run, so nothing would ever be sent and the
     // buffer + promise chain would grow without bound, hanging close(). Yield
-    // periodically so the writer drains and memory stays bounded.
-    if ((iterations & 0xFFFF) === 0) {
+    // every 10 seconds so the writer drains and memory stays bounded.
+    if (now >= nextYield) {
         await new Promise((resolve) => setImmediate(resolve));
+        nextYield = process.hrtime.bigint() + YIELD_INTERVAL_NS;
     }
 }
 
