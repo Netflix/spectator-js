@@ -23,31 +23,40 @@ if (writerType !== "udp" && writerType !== "unix") {
 }
 
 const registry = new Registry(new Config(writerType));
-const counter = registry.counter("sample.counter");
+const tags = {
+    location: writerType,
+    version: "correct-horse-battery-staple",
+};
 
 console.log(`Writer Type: ${writerType}`);
 
 // Node is single-threaded, so there is only ever one worker driving the loop.
 const numThreads = 1;
 
-const YIELD_INTERVAL_NS = 10n * 1_000_000_000n;
+// The writer buffers each line synchronously and only sends when the event
+// loop runs, flushing the *entire* accumulated buffer as one datagram. A
+// synchronous loop never yields, so the buffer balloons and the first drain
+// tries to send an oversized datagram -> EMSGSIZE ("Message too long"). Yield
+// once we've buffered ~16KB so each datagram stays well under the OS limit.
+// This must be bound by bytes, not wall-clock time: at high throughput even a
+// sub-second interval buffers megabytes, far past the datagram size limit.
+const YIELD_BYTES = 16 * 1024;
+// Approximate on-wire size of one tagged counter line, e.g.
+// "c:sample.counter,location=unix,version=correct-horse-battery-staple:1\n".
+const LINE_BYTES = `c:sample.counter,location=${writerType},version=correct-horse-battery-staple:1`.length + 1;
 
 let iterations = 0;
+let bufferedBytes = 0;
 const start = process.hrtime.bigint();
 const deadline = start + BigInt(MAX_DURATION_SECS) * 1_000_000_000n;
-let nextYield = start + YIELD_INTERVAL_NS;
 
 for (let now = start; now < deadline; now = process.hrtime.bigint()) {
-    void counter.increment();
+    void registry.counter("sample.counter", tags).increment();
     iterations++;
-    // The writer buffers synchronously and only flushes when the event loop
-    // runs (timer + chained drains). A fully synchronous loop would block the
-    // event loop for the whole run, so nothing would ever be sent and the
-    // buffer + promise chain would grow without bound, hanging close(). Yield
-    // every 10 seconds so the writer drains and memory stays bounded.
-    if (now >= nextYield) {
+    bufferedBytes += LINE_BYTES;
+    if (bufferedBytes >= YIELD_BYTES) {
         await new Promise((resolve) => setImmediate(resolve));
-        nextYield = process.hrtime.bigint() + YIELD_INTERVAL_NS;
+        bufferedBytes = 0;
     }
 }
 
