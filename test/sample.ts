@@ -1,5 +1,6 @@
 import {Config, Registry} from "../src/index.js";
 import process from "node:process";
+import {setImmediate} from "node:timers";
 
 const MAX_DURATION_SECS = 2 * 60;
 
@@ -36,6 +37,14 @@ const deadline = start + BigInt(MAX_DURATION_SECS) * 1_000_000_000n;
 while (process.hrtime.bigint() < deadline) {
     void counter.increment();
     iterations++;
+    // The writer buffers synchronously and only flushes when the event loop
+    // runs (timer + chained drains). A fully synchronous loop would block the
+    // event loop for the whole run, so nothing would ever be sent and the
+    // buffer + promise chain would grow without bound, hanging close(). Yield
+    // periodically so the writer drains and memory stays bounded.
+    if ((iterations & 0xFFFF) === 0) {
+        await new Promise((resolve) => setImmediate(resolve));
+    }
 }
 
 const elapsed = Number(process.hrtime.bigint() - start) / 1e9;
