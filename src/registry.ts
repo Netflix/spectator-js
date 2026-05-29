@@ -34,7 +34,7 @@ export class Registry {
     constructor(config: Config = new Config()) {
         this._config = config;
         this.logger = config.logger;
-        this._writer = new_writer(this._config.location, this.logger);
+        this._writer = new_writer(this._config.location, this.logger, this._config.buffer_size_bytes);
         this._noop_writer = new NoopWriter();
         // "Is non-empty?" check on a Record<string, string>. for-in + break is
         // O(1) and allocation-free, vs Object.keys(...).length which would

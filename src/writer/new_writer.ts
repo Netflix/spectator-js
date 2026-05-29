@@ -17,9 +17,11 @@ export function is_valid_output_location(location: string): boolean {
         location.startsWith("unix://");
 }
 
-export function new_writer(location: string, logger?: Logger): WriterUnion {
+export function new_writer(location: string, logger?: Logger, buffer_size_bytes?: number): WriterUnion {
     /**
-     * Create a new Writer based on an output location.
+     * Create a new Writer based on an output location. The optional
+     * buffer_size_bytes is forwarded to the buffering writers (UDP and UDS) as
+     * their max buffer size; it is ignored by the non-buffering writers.
      */
 
     const log = logger ?? get_logger();
@@ -49,13 +51,13 @@ export function new_writer(location: string, logger?: Logger): WriterUnion {
         const parsed = new URL(location);
         // convert IPv6 bracket notation [::1] to ::1 for the socket api
         const hostname = parsed.hostname.replace("[::1]", "::1");
-        return new UdpWriter(location, hostname, Number(parsed.port), log);
+        return new UdpWriter(location, hostname, Number(parsed.port), log, buffer_size_bytes);
     }
     if (location.startsWith("unix://")) {
         // unix:///abs/path/socket — strip the scheme to get the filesystem path.
         const path = location.slice("unix://".length);
         try {
-            return new UdsWriter(location, path, log);
+            return new UdsWriter(location, path, log, buffer_size_bytes);
         } catch (err) {
             // UDS init only really fails when the spectatord socket is missing
             // or the client bind path isn't writable — both signal "this host
@@ -67,7 +69,7 @@ export function new_writer(location: string, logger?: Logger): WriterUnion {
             // bind errors with code='Unknown'), so we can't narrow by code —
             // catching all errors here is intentional.
             log.warn(`UDS unavailable (${(err as Error).message}); falling back to udp://127.0.0.1:1234`);
-            return new UdpWriter("udp://127.0.0.1:1234", "127.0.0.1", 1234, log);
+            return new UdpWriter("udp://127.0.0.1:1234", "127.0.0.1", 1234, log, buffer_size_bytes);
         }
     }
 

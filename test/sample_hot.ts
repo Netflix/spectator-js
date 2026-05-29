@@ -1,3 +1,10 @@
+// Hot-loop throughput benchmark — a variant of sample.ts.
+//
+// sample.ts constructs a new counter every iteration, so its rate is dominated
+// by per-call meter creation (Id construction + tag validation). This file
+// instead reuses a single counter and just calls increment() in a hot loop, so
+// it measures the increment + buffer path with meter creation removed. The
+// buffer size is controllable via the second argument, exactly like sample.ts.
 import {Config, Registry} from "../src/index.js";
 import process from "node:process";
 import {setImmediate} from "node:timers";
@@ -5,7 +12,7 @@ import {setImmediate} from "node:timers";
 const MAX_DURATION_SECS = 2 * 60;
 
 function printUsage(): void {
-    console.error("Usage: sample [writer_type] [buffer_size_bytes]");
+    console.error("Usage: sample_hot [writer_type] [buffer_size_bytes]");
     console.error("  writer_type: udp or unix (default is unix)");
     console.error("  buffer_size_bytes: positive integer (default is the writer default, 32768)");
 }
@@ -38,6 +45,8 @@ const tags = {
     location: writerType,
     version: "correct-horse-battery-staple",
 };
+// Build the counter once and reuse it — this is the difference from sample.ts.
+const counter = registry.counter("sample.counter", tags);
 
 console.log(`Writer Type: ${writerType}`);
 console.log(`Buffer Size: ${bufferSize ?? "default (32768)"}`);
@@ -64,7 +73,7 @@ const start = process.hrtime.bigint();
 const deadline = start + BigInt(MAX_DURATION_SECS) * 1_000_000_000n;
 
 for (let now = start; now < deadline; now = process.hrtime.bigint()) {
-    void registry.counter("sample.counter", tags).increment();
+    void counter.increment();
     iterations++;
     bufferedBytes += LINE_BYTES;
     if (bufferedBytes >= YIELD_BYTES) {

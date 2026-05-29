@@ -26,6 +26,11 @@ export class Config {
      * The output location can be overridden by configuring an environment variable SPECTATOR_OUTPUT_LOCATION
      * with one of the values listed above. Overriding the output location may be useful for integration testing.
      *
+     * The optional `buffer_size_bytes` controls how many bytes the UDP and UDS writers accumulate before
+     * flushing a batched datagram; it is ignored by the non-buffering writers (memory, file, etc.). When
+     * omitted, the writer default (32768) is used. Lower values flush sooner (smaller datagrams, more
+     * syscalls); higher values batch more aggressively. Must be a positive integer if provided.
+     *
      * UDS support is provided by the `node-unix-socket` package (napi-rs based, ships prebuilt binaries
      * for common Linux/macOS targets — no node-gyp / build toolchain required at install time). spectatord's
      * UDS endpoint accepts SOCK_DGRAM datagrams and supports higher throughput than the UDP listener
@@ -36,11 +41,24 @@ export class Config {
     location: string;
     extra_common_tags: Tags;
     logger: Logger;
+    buffer_size_bytes?: number;
 
-    constructor(location: string = "unix", extra_common_tags: Tags = {}, logger: Logger = get_logger()) {
+    constructor(location: string = "unix", extra_common_tags: Tags = {}, logger: Logger = get_logger(),
+                buffer_size_bytes?: number) {
         this.location = this.calculate_location(location);
         this.extra_common_tags = this.calculate_extra_common_tags(extra_common_tags);
         this.logger = logger;
+        this.buffer_size_bytes = this.validate_buffer_size(buffer_size_bytes);
+    }
+
+    validate_buffer_size(buffer_size_bytes?: number): number | undefined {
+        if (buffer_size_bytes === undefined) {
+            return undefined;
+        }
+        if (!Number.isInteger(buffer_size_bytes) || buffer_size_bytes <= 0) {
+            throw new Error(`buffer_size_bytes must be a positive integer: ${buffer_size_bytes}`);
+        }
+        return buffer_size_bytes;
     }
 
     calculate_extra_common_tags(common_tags: Tags): Tags {

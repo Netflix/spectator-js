@@ -70,4 +70,20 @@ describe("Config Tests", (): void => {
     it("invalid output location throws", (): void => {
         assert.throws((): string => get_location("foo"));
     });
+
+    it("buffer size defaults to undefined", (): void => {
+        const config = new Config("udp");
+        assert.equal(config.buffer_size_bytes, undefined);
+    });
+
+    it("buffer size is stored", (): void => {
+        const config = new Config("udp", undefined, undefined, 8192);
+        assert.equal(config.buffer_size_bytes, 8192);
+    });
+
+    it("invalid buffer size throws", (): void => {
+        assert.throws((): Config => new Config("udp", undefined, undefined, 0));
+        assert.throws((): Config => new Config("udp", undefined, undefined, -1));
+        assert.throws((): Config => new Config("udp", undefined, undefined, 1.5));
+    });
 });

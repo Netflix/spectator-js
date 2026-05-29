@@ -125,6 +125,30 @@ describe("UdpWriter Tests", (): void => {
         }
     });
 
+    it("registry forwards buffer size", async (): Promise<void> => {
+        // A small buffer configured via Config should reach the UdpWriter: two
+        // small increments (~68 bytes) exceed it and trigger a size-based flush
+        // within the sleep window. If the size were not forwarded, the default
+        // 32KB buffer would hold the lines until the 15s timer, and nothing
+        // would arrive in time — so this asserts the Config -> writer wiring.
+        const r = new Registry(new Config(location, undefined, undefined, 50));
+
+        try {
+            await r.counter("server.numRequests", {"id": "success"}).increment();
+            await r.counter("server.numRequests", {"id": "success"}).increment(2);
+
+            await sleep(50);
+
+            const lines = messages.flatMap((m) => m.split("\n"));
+            assert.equal(lines.length, 2);
+            assert.equal(lines[0], "c:server.numRequests,id=success:1");
+            assert.equal(lines[1], "c:server.numRequests,id=success:2");
+        } finally {
+            await r.close();
+            messages.length = 0;
+        }
+    });
+
     it("flush on timeout twice", async (): Promise<void> => {
         const address = server.address();
         const writer = new UdpWriter(location, address.address, address.port, undefined, 8192, 50);
