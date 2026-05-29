@@ -3,8 +3,28 @@ import process from "node:process";
 
 const MAX_DURATION_SECS = 2 * 60;
 
-const registry = new Registry(new Config("unix"));
+function printUsage(): void {
+    console.error("Usage: sample [writer_type]");
+    console.error("  writer_type: udp or unix (default is unix)");
+}
+
+const args = process.argv.slice(2);
+if (args.length > 1) {
+    printUsage();
+    process.exit(1);
+}
+
+const writerType = args[0] ?? "unix";
+if (writerType !== "udp" && writerType !== "unix") {
+    console.error(`Invalid writer type: ${writerType}`);
+    printUsage();
+    process.exit(1);
+}
+
+const registry = new Registry(new Config(writerType));
 const counter = registry.counter("sample.counter");
+
+console.log(`Writer Type: ${writerType}`);
 
 // Node is single-threaded, so there is only ever one worker driving the loop.
 const numThreads = 1;
