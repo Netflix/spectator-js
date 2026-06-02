@@ -83,10 +83,16 @@ describe("UdsWriter Tests", (): void => {
 
             await sleep(20);
 
-            const lines = messages.flatMap((m) => m.split("\n"));
+            let lines = messages.flatMap((m) => m.split("\n"));
+            assert.equal(lines.length, 2, "buffer-full should flush before timer");
+
+            // close drains the remaining buffered line.
+            await writer.close();
+            await sleep(5);
+
+            lines = messages.flatMap((m) => m.split("\n"));
             assert.equal(lines.length, 3);
         } finally {
-            await writer.close();
             messages.length = 0;
         }
     });

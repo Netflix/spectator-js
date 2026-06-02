@@ -107,35 +107,42 @@ export class UdsWriter extends Writer {
             this._flushTimer = null;
         }
 
-        this._lastOperation = this._lastOperation.then(() => this.drainBuffer(true));
+        const payload = this.takePayload();
+        this._lastOperation = this._lastOperation.then(async () => {
+            if (payload) await this.sendPayload(payload);
+            this.cleanup();
+        });
         return this._lastOperation;
     }
 
     private flush(): void {
-        this._lastOperation = this._lastOperation.then(() => this.drainBuffer(false));
-    }
-
-    private drainBuffer(andClose: boolean): Promise<void> | void {
         if (this._flushTimer) {
             clearTimeout(this._flushTimer);
             this._flushTimer = null;
         }
+        const payload = this.takePayload();
+        if (!payload) return;
+        this._lastOperation = this._lastOperation.then(() => this.sendPayload(payload));
+    }
 
-        if (this._buffer.length === 0) {
-            if (andClose) this.cleanup();
-            return;
-        }
-
-        // node-unix-socket's sendTo only accepts Buffer (no string overload),
-        // so we encode once per flush rather than per write.
+    // Snapshots the current buffer for sendTo and resets the buffer. 
+    // Doing this synchronously prevents repeated writes from queuing 
+    // duplicate drains while one is already pending.
+    //
+    // node-unix-socket's sendTo only accepts Buffer (no string overload),
+    // so we encode once per flush rather than per write.
+    private takePayload(): Buffer | null {
+        if (this._buffer.length === 0) return null;
         const payload = Buffer.from(this._buffer.join("\n"));
         this._buffer.length = 0;
         this._bufferBytes = 0;
+        return payload;
+    }
 
+    private sendPayload(payload: Buffer): Promise<void> {
         return new Promise<void>((resolve) => {
             this._socket.sendTo(payload, 0, payload.length, this._destPath, (err) => {
                 if (err) this._logger.error(`failed to send uds payload: ${err.message}`);
-                if (andClose) this.cleanup();
                 resolve();
             });
         });
