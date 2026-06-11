@@ -11,10 +11,12 @@ import {StdoutWriter} from "./stdout_writer.js";
 export type WriterUnion = FileWriter | MemoryWriter | NoopWriter | StderrWriter | StdoutWriter | UdpWriter | UdsWriter;
 
 export function is_valid_output_location(location: string): boolean {
-    return ["none", "memory", "stderr", "stdout", "udp", "unix"].includes(location) ||
+    // NOTE: "unix" / "unix://" (UDS) are intentionally not accepted for the time
+    // being. The UdsWriter implementation is retained (see uds_writer.ts and the
+    // routing in new_writer below) so it can be re-enabled by restoring these entries.
+    return ["none", "memory", "stderr", "stdout", "udp"].includes(location) ||
         location.startsWith("file://") ||
-        location.startsWith("udp://") ||
-        location.startsWith("unix://");
+        location.startsWith("udp://");
 }
 
 export function new_writer(location: string, logger?: Logger, buffer_size_bytes?: number): WriterUnion {
@@ -41,9 +43,6 @@ export function new_writer(location: string, logger?: Logger, buffer_size_bytes?
     if (location == "udp") {
         location = "udp://127.0.0.1:1234";
     }
-    if (location == "unix") {
-        location = "unix:///run/spectatord/spectatord.unix";
-    }
     if (location.startsWith("file://")) {
         return new FileWriter(location, log);
     }
@@ -53,25 +52,30 @@ export function new_writer(location: string, logger?: Logger, buffer_size_bytes?
         const hostname = parsed.hostname.replace("[::1]", "::1");
         return new UdpWriter(location, hostname, Number(parsed.port), log, buffer_size_bytes);
     }
-    if (location.startsWith("unix://")) {
-        // unix:///abs/path/socket — strip the scheme to get the filesystem path.
-        const path = location.slice("unix://".length);
-        try {
-            return new UdsWriter(location, path, log, buffer_size_bytes);
-        } catch (err) {
-            // UDS init only really fails when the spectatord socket is missing
-            // or the client bind path isn't writable — both signal "this host
-            // has no spectatord." Fall back to UDP so tests and dev
-            // environments behave like the historical UDP default (silent
-            // drop) instead of crashing at Registry construction. The
-            // underlying errno isn't reliably preserved across the
-            // statSync/node-unix-socket boundary (node-unix-socket surfaces
-            // bind errors with code='Unknown'), so we can't narrow by code —
-            // catching all errors here is intentional.
-            log.warn(`UDS unavailable (${(err as Error).message}); falling back to udp://127.0.0.1:1234`);
-            return new UdpWriter("udp://127.0.0.1:1234", "127.0.0.1", 1234, log, buffer_size_bytes);
-        }
-    }
+    // UDS ("unix" / "unix://...") routing is intentionally disabled for the time
+    // being. is_valid_output_location rejects those locations before we get here,
+    // so this is unreachable, but the routing is preserved (commented out) alongside
+    // the retained UdsWriter implementation to make re-enabling a one-step change.
+    //
+    // if (location.startsWith("unix://")) {
+    //     // unix:///abs/path/socket — strip the scheme to get the filesystem path.
+    //     const path = location.slice("unix://".length);
+    //     try {
+    //         return new UdsWriter(location, path, log, buffer_size_bytes);
+    //     } catch (err) {
+    //         // UDS init only really fails when the spectatord socket is missing
+    //         // or the client bind path isn't writable — both signal "this host
+    //         // has no spectatord." Fall back to UDP so tests and dev
+    //         // environments behave like the historical UDP default (silent
+    //         // drop) instead of crashing at Registry construction. The
+    //         // underlying errno isn't reliably preserved across the
+    //         // statSync/node-unix-socket boundary (node-unix-socket surfaces
+    //         // bind errors with code='Unknown'), so we can't narrow by code —
+    //         // catching all errors here is intentional.
+    //         log.warn(`UDS unavailable (${(err as Error).message}); falling back to udp://127.0.0.1:1234`);
+    //         return new UdpWriter("udp://127.0.0.1:1234", "127.0.0.1", 1234, log, buffer_size_bytes);
+    //     }
+    // }
 
     throw new Error(`unsupported Writer location: ${location}`);
 }

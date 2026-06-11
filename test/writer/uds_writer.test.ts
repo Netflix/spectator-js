@@ -1,5 +1,5 @@
 import {assert} from "chai";
-import {Config, new_writer, Registry, UdsWriter} from "../../src/index.js";
+import {Config, Registry, UdsWriter} from "../../src/index.js";
 import {DgramSocket} from "node-unix-socket";
 import {after, before, describe, it} from "node:test";
 import {tmpdir} from "node:os";
@@ -39,7 +39,9 @@ describe("UdsWriter Tests", (): void => {
     });
 
     it("send metrics", async (): Promise<void> => {
-        const writer = new_writer(location) as UdsWriter;
+        // UDS routing through new_writer is temporarily disabled, so construct the
+        // retained UdsWriter implementation directly rather than via new_writer(location).
+        const writer = new UdsWriter(location, serverPath);
 
         await writer.write("c:server.numRequests,id=failed:1");
         await writer.write("c:server.numRequests,id=failed:2");
@@ -55,7 +57,9 @@ describe("UdsWriter Tests", (): void => {
         messages.length = 0;
     });
 
-    it("using registry", async (): Promise<void> => {
+    // Skipped while UDS locations are rejected by Config / new_writer. This exercises
+    // the disabled routing path (unix:// -> UdsWriter); re-enable alongside that routing.
+    it.skip("using registry", async (): Promise<void> => {
         const r = new Registry(new Config(location));
 
         await r.counter("server.numRequests", {"id": "success"}).increment();

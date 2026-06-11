@@ -17,25 +17,20 @@ export class Config {
      *   * `memory` - Write metrics to memory. Useful for testing.
      *   * `stderr` - Write metrics to standard error.
      *   * `stdout` - Write metrics to standard output.
-     *   * `udp`    - Write metrics to the default spectatord UDP port.
-     *   * `unix`   - Write metrics to the default spectatord UDS path (/run/spectatord/spectatord.unix). This is the default value.
+     *   * `udp`    - Write metrics to the default spectatord UDP port. This is the default value.
      *   * `file:///path/to/file`   - Write metrics to a file.
      *   * `udp://host:port`        - Write metrics to a UDP socket.
-     *   * `unix:///path/to/socket` - Write metrics to a SOCK_DGRAM Unix domain socket.
+     *
+     * NOTE: UDS locations (`unix` / `unix:///path/to/socket`) are temporarily not accepted. The
+     * UdsWriter implementation is retained, but these locations are rejected as invalid for now.
      *
      * The output location can be overridden by configuring an environment variable SPECTATOR_OUTPUT_LOCATION
      * with one of the values listed above. Overriding the output location may be useful for integration testing.
      *
-     * The optional `buffer_size_bytes` controls how many bytes the UDP and UDS writers accumulate before
+     * The optional `buffer_size_bytes` controls how many bytes the UDP writer accumulates before
      * flushing a batched datagram; it is ignored by the non-buffering writers (memory, file, etc.). When
      * omitted, the writer default (32768) is used. Lower values flush sooner (smaller datagrams, more
      * syscalls); higher values batch more aggressively. Must be a positive integer if provided.
-     *
-     * UDS support is provided by the `node-unix-socket` package (napi-rs based, ships prebuilt binaries
-     * for common Linux/macOS targets — no node-gyp / build toolchain required at install time). spectatord's
-     * UDS endpoint accepts SOCK_DGRAM datagrams and supports higher throughput than the UDP listener
-     * (~1M req/sec with batching vs ~430K req/sec for UDP). Use `unix` / `unix://...` if your workload
-     * is hot enough to benefit from it.
      */
 
     location: string;
@@ -43,7 +38,7 @@ export class Config {
     logger: Logger;
     buffer_size_bytes?: number;
 
-    constructor(location: string = "unix", extra_common_tags: Tags = {}, logger: Logger = get_logger(),
+    constructor(location: string = "udp", extra_common_tags: Tags = {}, logger: Logger = get_logger(),
                 buffer_size_bytes?: number) {
         this.location = this.calculate_location(location);
         this.extra_common_tags = this.calculate_extra_common_tags(extra_common_tags);
