@@ -115,9 +115,9 @@ describe("UdpWriter Tests", (): void => {
             await writer.write("c:server.numRequests,id=failed:2");
             await writer.write("c:server.numRequests,id=failed:3");
 
-            // Each line is 32 bytes. Adding a second line would exceed the
-            // 50-byte buffer, so the writer pre-flushes the existing line before
-            // appending the next one. The third line remains buffered until close.
+            // Each line is 32 bytes plus a counted newline. Adding a second line
+            // would exceed the 50-byte buffer, so the writer pre-flushes the
+            // existing line before appending the next one.
             await sleep(50);
 
             let lines = messages.flatMap((m) => m.split("\n"));
@@ -198,15 +198,15 @@ describe("UdpWriter Tests", (): void => {
 
     it("buffer full resets timer", async (): Promise<void> => {
         const address = server.address();
-        // small buffer (23 bytes), 200ms timeout
-        const writer = new UdpWriter(location, address.address, address.port, undefined, 23, 200);
+        // small buffer (24 bytes), 200ms timeout
+        const writer = new UdpWriter(location, address.address, address.port, undefined, 24, 200);
 
         try {
-            // first write (11 bytes) sets the 200ms timer
+            // first write (11 bytes plus counted newline) sets the 200ms timer
             await writer.write("c:counter:1");
             assert.equal(messages.length, 0);
 
-            // second write exactly fills 23 bytes (two 11-byte lines plus newline),
+            // second write exactly fills 24 bytes (two 11-byte lines plus newlines),
             // triggering a size-based flush and clearing the original timer.
             await writer.write("c:counter:2");
 

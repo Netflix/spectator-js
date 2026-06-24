@@ -60,12 +60,16 @@ export class UdpWriter extends Writer {
         if (this._closed) return RESOLVED;
         // Spectator protocol lines are ASCII after Id sanitization, so string
         // length is the byte count without Buffer.byteLength's per-write scan.
+        // Count one newline terminator per metric. takePayload() currently emits
+        // newline separators without a trailing newline, so _bufferBytes is a
+        // conservative upper bound by one byte per datagram.
         const bufferedLines = this._buffer.length;
-        let nextBufferBytes = this._bufferBytes + (bufferedLines === 0 ? 0 : 1) + line.length;
+        const lineBytes = line.length + 1;
+        let nextBufferBytes = this._bufferBytes + lineBytes;
 
         if (bufferedLines > 0 && nextBufferBytes > this._maxBufferBytes) {
             this.flush();
-            nextBufferBytes = line.length;
+            nextBufferBytes = lineBytes;
         }
 
         this._buffer.push(line);

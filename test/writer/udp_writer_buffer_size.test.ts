@@ -62,7 +62,7 @@ describe("UdpWriter buffer size", (): void => {
         messages.length = 0;
 
         const MAX_BUFFER_BYTES = 256;
-        const LINE = "x".repeat(63);                 // 4 lines plus separators = 255 bytes
+        const LINE = "x".repeat(63);                 // 4 lines plus counted newlines = 256 bytes
         const N = 100;                               // ~6400 bytes total — under the 9216
                                                      // macOS datagram cap, so even the buggy
                                                      // single packet is delivered and observable
