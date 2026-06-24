@@ -8,8 +8,10 @@ const DEFAULT_MAX_BUFFER_BYTES = 32768;
 const DEFAULT_FLUSH_INTERVAL_MS = 15000;
 
 /**
- * Buffers metrics and flushes them as newline-delimited UDP packets,
- * either when the buffer reaches the configured max size or after the flush interval.
+ * Buffers metrics and flushes them as newline-delimited UDP packets, either when
+ * the buffer reaches the configured max size or after the flush interval. The
+ * buffer is snapshot synchronously on flush, so each datagram carries at most the
+ * configured buffer size unless a single metric line is larger than the buffer.
  *
  * All socket operations (connect, send, close) are serialized through a single
  * Promise chain (_lastOperation) to prevent races between flush and close.
@@ -33,16 +35,41 @@ export class UdpWriter extends Writer {
         this._socket = createSocket(isIPv6(address) ? "udp6" : "udp4");
         this._socket.on('error', (err) => this._logger.error(`udp socket error: ${err.message}`));
         this._lastOperation = new Promise((resolve) => {
-            this._socket.connect(port, address, resolve);
+            let settled = false;
+            const settle = (): void => {
+                if (settled) return;
+                settled = true;
+                this._socket.off("error", onInitialError);
+                resolve();
+            };
+            const onInitialError = (_err: Error): void => settle();
+
+            this._socket.once("error", onInitialError);
+            try {
+                this._socket.connect(port, address, settle);
+            } catch (err) {
+                this._socket.off("error", onInitialError);
+                throw err;
+            }
         });
     }
 
-    // Appends to the buffer synchronously. Triggers a flush when the buffer
-    // exceeds the max size, or schedules one after the flush interval.
+    // Appends to the buffer synchronously. Flushes before appending a line that
+    // would exceed the configured max size, or after the flush interval.
     write(line: string): Promise<void> {
         if (this._closed) return RESOLVED;
+        // Spectator protocol lines are ASCII after Id sanitization, so string
+        // length is the byte count without Buffer.byteLength's per-write scan.
+        const bufferedLines = this._buffer.length;
+        let nextBufferBytes = this._bufferBytes + (bufferedLines === 0 ? 0 : 1) + line.length;
+
+        if (bufferedLines > 0 && nextBufferBytes > this._maxBufferBytes) {
+            this.flush();
+            nextBufferBytes = line.length;
+        }
+
         this._buffer.push(line);
-        this._bufferBytes += line.length + 1;
+        this._bufferBytes = nextBufferBytes;
 
         if (this._bufferBytes >= this._maxBufferBytes) {
             this.flush();
@@ -54,51 +81,62 @@ export class UdpWriter extends Writer {
         return RESOLVED;
     }
 
-    // Clears the timer synchronously (must happen before chaining, so a pending
-    // timer can't schedule a flush that runs after close), then chains drainBuffer.
+    // Snapshots any remaining buffered lines synchronously (so a late write can't
+    // be swept into the closing send), then sends them and closes the socket
+    // after all previously-chained sends have drained.
     close(): Promise<void> {
         if (this._closed) return this._lastOperation;
         this._closed = true;
-        if (this._flushTimer) {
-            clearTimeout(this._flushTimer);
-            this._flushTimer = null;
-        }
+        this.clearTimer();
 
-        this._lastOperation = this._lastOperation.then(() => this.drainBuffer(true));
+        const payload = this.takePayload();
+        this._lastOperation = this._lastOperation.then(async () => {
+            if (payload !== null) await this.sendPayload(payload);
+            await new Promise<void>((resolve) => this._socket.close(() => resolve()));
+        });
         return this._lastOperation;
     }
 
-    // Chains a drainBuffer onto _lastOperation so it waits for any in-flight send.
+    // Snapshots the buffered lines into one payload and resets the buffer
+    // SYNCHRONOUSLY, then chains the send. Capturing the payload here (rather
+    // than when the chained send runs) bounds each datagram to one buffer's
+    // worth: writes that arrive before the send executes accumulate into a fresh
+    // buffer instead of growing the one already handed off to be sent.
     private flush(): void {
-        this._lastOperation = this._lastOperation.then(() => this.drainBuffer(false));
+        this.clearTimer();
+        const payload = this.takePayload();
+        if (payload === null) return;
+        this._lastOperation = this._lastOperation.then(() => this.sendPayload(payload));
     }
 
-    // Sends all buffered lines as a single newline-delimited UDP packet.
-    // When andClose is true, closes the socket after the send completes.
-    private drainBuffer(andClose: boolean): Promise<void> | void {
+    private takePayload(): string | null {
+        if (this._buffer.length === 0) return null;
+        const payload = this._buffer.join("\n");
+        this._buffer.length = 0;
+        this._bufferBytes = 0;
+        return payload;
+    }
+
+    private sendPayload(payload: string): Promise<void> {
+        return new Promise<void>((resolve) => {
+            const onSend = (err: Error | null): void => {
+                if (err) this._logger.error(`failed to send udp payload: ${err.message}`);
+                resolve();
+            };
+
+            try {
+                this._socket.send(payload, onSend);
+            } catch (err) {
+                if (err instanceof Error) this._logger.error(`failed to send udp payload: ${err.message}`);
+                resolve();
+            }
+        });
+    }
+
+    private clearTimer(): void {
         if (this._flushTimer) {
             clearTimeout(this._flushTimer);
             this._flushTimer = null;
         }
-
-        if (this._buffer.length === 0) {
-            if (andClose) return new Promise<void>((resolve) => this._socket.close(resolve));
-            return;
-        }
-
-        const payload = this._buffer.join("\n");
-        this._buffer.length = 0;
-        this._bufferBytes = 0;
-
-        return new Promise<void>((resolve) => {
-            this._socket.send(payload, (err: Error | null) => {
-                if (err) this._logger.error(`failed to send udp payload: ${err.message}`);
-                if (andClose) {
-                    this._socket.close(resolve);
-                } else {
-                    resolve();
-                }
-            });
-        });
     }
 }

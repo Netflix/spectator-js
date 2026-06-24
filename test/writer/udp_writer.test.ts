@@ -2,7 +2,9 @@ import {assert} from "chai";
 import {Config, new_writer, Registry, UdpWriter} from "../../src/index.js";
 import {AddressInfo, isIPv4, isIPv6} from "node:net";
 import {createSocket, Socket} from "node:dgram";
+import dns from "node:dns";
 import {after, before, describe, it} from "node:test";
+import type {Logger} from "../../src/logger/logger.js";
 
 describe("UdpWriter Tests", (): void => {
 
@@ -113,12 +115,23 @@ describe("UdpWriter Tests", (): void => {
             await writer.write("c:server.numRequests,id=failed:2");
             await writer.write("c:server.numRequests,id=failed:3");
 
-            // 3 lines exceed 100 bytes, so a flush should have been triggered.
-            // wait for connect + send to complete.
+            // Each line is 32 bytes. Adding a second line would exceed the
+            // 50-byte buffer, so the writer pre-flushes the existing line before
+            // appending the next one. The third line remains buffered until close.
             await sleep(50);
 
-            const lines = messages.flatMap((m) => m.split("\n"));
+            let lines = messages.flatMap((m) => m.split("\n"));
+            assert.equal(lines.length, 2);
+            assert.equal(lines[0], "c:server.numRequests,id=failed:1");
+            assert.equal(lines[1], "c:server.numRequests,id=failed:2");
+
+            // closing flushes the remaining buffered line
+            await writer.close();
+            await sleep(10);
+
+            lines = messages.flatMap((m) => m.split("\n"));
             assert.equal(lines.length, 3);
+            assert.equal(lines[2], "c:server.numRequests,id=failed:3");
         } finally {
             await writer.close();
             messages.length = 0;
@@ -127,15 +140,16 @@ describe("UdpWriter Tests", (): void => {
 
     it("registry forwards buffer size", async (): Promise<void> => {
         // A small buffer configured via Config should reach the UdpWriter: two
-        // small increments (~68 bytes) exceed it and trigger a size-based flush
+        // small increments fit, and the third increment pre-flushes that batch
         // within the sleep window. If the size were not forwarded, the default
         // 32KB buffer would hold the lines until the 15s timer, and nothing
         // would arrive in time — so this asserts the Config -> writer wiring.
-        const r = new Registry(new Config(location, undefined, undefined, 50));
+        const r = new Registry(new Config(location, undefined, undefined, 70));
 
         try {
             await r.counter("server.numRequests", {"id": "success"}).increment();
             await r.counter("server.numRequests", {"id": "success"}).increment(2);
+            await r.counter("server.numRequests", {"id": "success"}).increment(3);
 
             await sleep(50);
 
@@ -145,6 +159,7 @@ describe("UdpWriter Tests", (): void => {
             assert.equal(lines[1], "c:server.numRequests,id=success:2");
         } finally {
             await r.close();
+            await sleep(10);
             messages.length = 0;
         }
     });
@@ -183,15 +198,16 @@ describe("UdpWriter Tests", (): void => {
 
     it("buffer full resets timer", async (): Promise<void> => {
         const address = server.address();
-        // small buffer (20 bytes), 200ms timeout
-        const writer = new UdpWriter(location, address.address, address.port, undefined, 20, 200);
+        // small buffer (23 bytes), 200ms timeout
+        const writer = new UdpWriter(location, address.address, address.port, undefined, 23, 200);
 
         try {
-            // first write (12 bytes) sets the 200ms timer
+            // first write (11 bytes) sets the 200ms timer
             await writer.write("c:counter:1");
             assert.equal(messages.length, 0);
 
-            // second write (24 bytes total) exceeds 20 bytes, triggers size-based flush
+            // second write exactly fills 23 bytes (two 11-byte lines plus newline),
+            // triggering a size-based flush and clearing the original timer.
             await writer.write("c:counter:2");
 
             await sleep(50);
@@ -212,6 +228,78 @@ describe("UdpWriter Tests", (): void => {
         } finally {
             await writer.close();
             messages.length = 0;
+        }
+    });
+
+    it("preflush starts timer for fresh buffer", async (): Promise<void> => {
+        const address = server.address();
+        const writer = new UdpWriter(location, address.address, address.port, undefined, 20, 50);
+
+        try {
+            await writer.write("c:counter:1");
+            await writer.write("c:counter:2");
+
+            // The second line overflows the first batch, so line 1 is preflushed.
+            // Line 2 lands in a fresh buffer and must still flush on its own timer.
+            await sleep(125);
+
+            const lines = messages.flatMap((m) => m.split("\n"));
+            assert.equal(lines.length, 2);
+            assert.equal(lines[0], "c:counter:1");
+            assert.equal(lines[1], "c:counter:2");
+        } finally {
+            await writer.close();
+            messages.length = 0;
+        }
+    });
+
+    it("ignores writes after close", async (): Promise<void> => {
+        const address = server.address();
+        const writer = new UdpWriter(location, address.address, address.port, undefined, 8192, 50);
+
+        await writer.write("c:counter:before-close");
+        await writer.close();
+        await writer.write("c:counter:after-close");
+
+        await sleep(100);
+
+        const lines = messages.flatMap((m) => m.split("\n"));
+        assert.deepEqual(lines, ["c:counter:before-close"]);
+        messages.length = 0;
+    });
+
+    it("close resolves when initial udp connect emits an error", async (): Promise<void> => {
+        const originalLookup = dns.lookup;
+        const logger: Logger = {
+            trace: (): void => {}, debug: (): void => {}, info: (): void => {},
+            warn: (): void => {}, error: (): void => {}, fatal: (): void => {},
+        };
+
+        (dns as any).lookup = (...args: any[]): void => {
+            const callback = args[args.length - 1] as (err: NodeJS.ErrnoException) => void;
+            const err = new Error("forced lookup failure") as NodeJS.ErrnoException;
+            err.code = "ENOTFOUND";
+            process.nextTick(() => callback(err));
+        };
+
+        const writer = new UdpWriter("udp://connect-failure.invalid:1234", "connect-failure.invalid", 1234, logger);
+
+        try {
+            await writer.write("c:counter:connect-failure");
+
+            const result = await Promise.race([
+                writer.close().then(() => "closed"),
+                sleep(100).then(() => "timeout"),
+            ]);
+
+            assert.equal(result, "closed");
+        } finally {
+            (dns as any).lookup = originalLookup;
+            try {
+                (writer as any)._socket.close();
+            } catch {
+                // Socket may already be closed if the implementation handles the error.
+            }
         }
     });
 
