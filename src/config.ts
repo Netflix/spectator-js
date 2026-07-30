@@ -29,8 +29,10 @@ export class Config {
      *
      * The optional `buffer_size_bytes` controls how many bytes the UDP writer accumulates before
      * flushing a batched datagram; it is ignored by the non-buffering writers (memory, file, etc.). When
-     * omitted, the writer default (32768) is used. Lower values flush sooner (smaller datagrams, more
-     * syscalls); higher values batch more aggressively. Must be a positive integer if provided.
+     * omitted, the platform-derived writer default is used: 32768 on Linux, and 9216 on macOS, which is
+     * the largest datagram macOS accepts by default (net.inet.udp.maxdgram). Lower values flush sooner
+     * (smaller datagrams, more syscalls); higher values batch more aggressively. Must be a positive
+     * integer if provided.
      */
 
     location: string;

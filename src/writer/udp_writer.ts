@@ -2,16 +2,39 @@ import {Writer} from "./writer.js";
 import {get_logger, Logger} from "../logger/logger.js";
 import {createSocket, Socket} from "node:dgram";
 import {isIPv6} from "node:net";
+import process from "node:process";
 
 const RESOLVED = Promise.resolve();
+// Linux (and anything that isn't macOS) accepts datagrams well past 32KB, which
+// is the size spectatord is tuned for.
 const DEFAULT_MAX_BUFFER_BYTES = 32768;
+// macOS caps a single UDP datagram at net.inet.udp.maxdgram, which defaults to
+// 9216 bytes and doubles as the default SO_SNDBUF for UDP sockets; a larger send
+// fails with EMSGSIZE rather than being fragmented. 9216 is therefore the largest
+// datagram macOS will accept out of the box, so it becomes the default buffer size
+// there.
+const DARWIN_MAX_BUFFER_BYTES = 9216;
 const DEFAULT_FLUSH_INTERVAL_MS = 15000;
+
+/**
+ * Largest datagram the host platform accepts by default. Used as the max buffer
+ * size when the caller does not configure one.
+ */
+function default_max_buffer_bytes(): number {
+    return process.platform === "darwin" ? DARWIN_MAX_BUFFER_BYTES : DEFAULT_MAX_BUFFER_BYTES;
+}
 
 /**
  * Buffers metrics and flushes them as newline-delimited UDP packets, either when
  * the buffer reaches the configured max size or after the flush interval. The
  * buffer is snapshot synchronously on flush, so each datagram carries at most the
  * configured buffer size unless a single metric line is larger than the buffer.
+ *
+ * A caller-provided maxBufferBytes is always honored as-is. When one is not
+ * provided the default is platform-derived: 32768 bytes on Linux, and the smaller
+ * 9216-byte macOS datagram cap on macOS (see DARWIN_MAX_BUFFER_BYTES), so the
+ * out-of-the-box configuration does not produce EMSGSIZE sends on a developer's
+ * Mac.
  *
  * All socket operations (connect, send, close) are serialized through a single
  * Promise chain (_lastOperation) to prevent races between flush and close.
@@ -27,11 +50,12 @@ export class UdpWriter extends Writer {
     private readonly _flushIntervalMs: number;
 
     constructor(location: string, address: string, port: number, logger: Logger = get_logger(),
-                maxBufferBytes: number = DEFAULT_MAX_BUFFER_BYTES, flushIntervalMs: number = DEFAULT_FLUSH_INTERVAL_MS) {
+                maxBufferBytes: number = default_max_buffer_bytes(), flushIntervalMs: number = DEFAULT_FLUSH_INTERVAL_MS) {
         super(logger);
         this._maxBufferBytes = maxBufferBytes;
         this._flushIntervalMs = flushIntervalMs;
-        this._logger.debug(`initialize UdpWriter to ${location}`);
+        this._logger.debug(`initialize UdpWriter to ${location} with maxBufferBytes=${this._maxBufferBytes} ` +
+            `on platform=${process.platform}`);
         this._socket = createSocket(isIPv6(address) ? "udp6" : "udp4");
         this._socket.on('error', (err) => this._logger.error(`udp socket error: ${err.message}`));
         this._lastOperation = new Promise((resolve) => {
