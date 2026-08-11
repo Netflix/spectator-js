@@ -38,6 +38,11 @@ function default_max_buffer_bytes(): number {
  *
  * All socket operations (connect, send, close) are serialized through a single
  * Promise chain (_lastOperation) to prevent races between flush and close.
+ *
+ * The socket is unreferenced so that an open writer cannot keep the Node event
+ * loop alive — a referenced dgram socket stops a short-lived process from exiting
+ * at all. Delivery is unaffected: libuv counts in-flight requests toward loop
+ * liveness regardless of the handle's reference state.
  */
 export class UdpWriter extends Writer {
     private _socket: Socket;
@@ -46,6 +51,7 @@ export class UdpWriter extends Writer {
     private _bufferBytes = 0;
     private _flushTimer: ReturnType<typeof setTimeout> | null = null;
     private _closed = false;
+    private readonly _exitFlush: () => void;
     private readonly _maxBufferBytes: number;
     private readonly _flushIntervalMs: number;
 
@@ -57,6 +63,9 @@ export class UdpWriter extends Writer {
         this._logger.debug(`initialize UdpWriter to ${location} with maxBufferBytes=${this._maxBufferBytes} ` +
             `on platform=${process.platform}`);
         this._socket = createSocket(isIPv6(address) ? "udp6" : "udp4");
+        // Unreference up front: connect() implicitly binds, and a handle that goes
+        // active while unreferenced is never added to the loop's active set.
+        this._socket.unref();
         this._socket.on('error', (err) => this._logger.error(`udp socket error: ${err.message}`));
         this._lastOperation = new Promise((resolve) => {
             let settled = false;
@@ -76,6 +85,14 @@ export class UdpWriter extends Writer {
                 throw err;
             }
         });
+
+        // A buffer waiting on the (also unreferenced) flush timer has nothing to
+        // hold the loop open, so a short-lived process would drop it. flush() and
+        // not close(), because "beforeExit" can fire while the app still has work
+        // and closing would discard every later write. Still no substitute for
+        // close(): "beforeExit" does not run on process.exit() or a signal.
+        this._exitFlush = (): void => this.flush();
+        process.on("beforeExit", this._exitFlush);
     }
 
     // Appends to the buffer synchronously. Flushes before appending a line that
@@ -116,6 +133,7 @@ export class UdpWriter extends Writer {
         if (this._closed) return this._lastOperation;
         this._closed = true;
         this.clearTimer();
+        process.off("beforeExit", this._exitFlush);
 
         const payload = this.takePayload();
         this._lastOperation = this._lastOperation.then(async () => {
