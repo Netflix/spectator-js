@@ -3,6 +3,7 @@ import {Config, new_writer, Registry, UdpWriter} from "../../src/index.js";
 import {AddressInfo, isIPv4, isIPv6} from "node:net";
 import {createSocket, Socket} from "node:dgram";
 import dns from "node:dns";
+import {spawn} from "node:child_process";
 import {after, before, describe, it} from "node:test";
 import type {Logger} from "../../src/logger/logger.js";
 
@@ -301,6 +302,42 @@ describe("UdpWriter Tests", (): void => {
                 // Socket may already be closed if the implementation handles the error.
             }
         }
+    });
+
+    it("does not keep a short-lived process alive", async (): Promise<void> => {
+        // A registry that is never closed must not stop its process from exiting;
+        // the writer's socket used to be a referenced handle, so the loop could
+        // never drain. Needs a child process because the symptom is whether a
+        // process exits on its own. The delivery assertion is the other half:
+        // unreferencing alone would exit with the metric still buffered.
+        const address = server.address();
+        const child = spawn(process.execPath, ["--input-type=module", "-e", `
+            import {Registry, Config} from "nflx-spectator";
+            new Registry(new Config("udp://${address.address}:${address.port}"))
+                .counter("shortlived").increment();
+        `], {stdio: "inherit"});
+
+        // The default flush interval is 15s, so a timeout well under that also
+        // proves the exit path flushed rather than the interval timer firing.
+        const outcome = await new Promise<string>((resolve): void => {
+            const timer = setTimeout((): void => {
+                child.kill("SIGKILL");
+                resolve("hung");
+            }, 5000);
+            child.on("exit", (code, signal): void => {
+                clearTimeout(timer);
+                resolve(signal === "SIGKILL" ? "hung" : `exit:${code}`);
+            });
+        });
+
+        assert.equal(outcome, "exit:0", "process that created a Registry did not exit on its own");
+
+        await sleep(20);  // tiny pause is necessary to see data
+
+        const lines = messages.flatMap((m) => m.split("\n"));
+        assert.deepEqual(lines, ["c:shortlived:1"]);
+
+        messages.length = 0;  // clear server messages
     });
 
     it("address family", (): void => {
