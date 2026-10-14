@@ -17,9 +17,17 @@ import {
     Registry,
     Timer, UdpWriter
 } from "../src/index.js";
-import {describe, it} from "node:test";
+import process from "node:process";
+import {before, describe, it} from "node:test";
 
 describe("Registry Tests", (): void => {
+    before((): void => {
+        // Config adds tags from these env vars; clear them so the expected output does not depend on the host.
+        for (const key of ["NETFLIX_CONTAINER_NAME", "NETFLIX_PROCESS_NAME", "TITUS_CONTAINER_NAME"]) {
+            delete process.env[key];
+        }
+    });
+
     it("close", (): void => {
         const r = new Registry(new Config("memory"));
         const writer = r.writer() as MemoryWriter;

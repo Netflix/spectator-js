@@ -12,12 +12,13 @@ describe("Config Tests", (): void => {
     }
 
     function setup_environment(): void {
+        clear_environment();
         process.env.NETFLIX_PROCESS_NAME = "nodejs";
         process.env.TITUS_CONTAINER_NAME = "main";
     }
 
     function clear_environment(): void {
-        const keys: string[] = ["NETFLIX_PROCESS_NAME", "SPECTATOR_OUTPUT_LOCATION", "TITUS_CONTAINER_NAME"];
+        const keys: string[] = ["NETFLIX_CONTAINER_NAME", "NETFLIX_PROCESS_NAME", "SPECTATOR_OUTPUT_LOCATION", "TITUS_CONTAINER_NAME"];
 
         for (const key of keys) {
             delete process.env[key];
@@ -54,6 +55,14 @@ describe("Config Tests", (): void => {
         const config = new Config(undefined, {"extra-tag": "foo"});
         assert.equal(config.location, "udp");
         assert.deepEqual(config.extra_common_tags, {"extra-tag": "foo", "nf.container": "main", "nf.process": "nodejs"});
+        clear_environment();
+    });
+
+    it("env var tags take precedence over extra common tags", (): void => {
+        setup_environment();
+        process.env.NETFLIX_CONTAINER_NAME = "app";
+        const config = new Config(undefined, {"nf.container": "user", "nf.process": "user", "extra-tag": "foo"});
+        assert.deepEqual(config.extra_common_tags, {"extra-tag": "foo", "nf.container": "app", "nf.process": "nodejs"});
         clear_environment();
     });
 

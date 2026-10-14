@@ -20,6 +20,11 @@ describe("UdpWriter Tests", (): void => {
     }
 
     before((): Promise<void> => {
+        // Config reads these; keep the registry-based tests (and the child process, which
+        // inherits process.env) independent of the host environment.
+        for (const key of ["NETFLIX_CONTAINER_NAME", "NETFLIX_PROCESS_NAME", "TITUS_CONTAINER_NAME"]) {
+            delete process.env[key];
+        }
         return new Promise((resolve: (value: void | PromiseLike<void>) => void): void => {
             server = createSocket("udp4");
             server.on("error", (err: Error): void => {
