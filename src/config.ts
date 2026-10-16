@@ -9,7 +9,9 @@ export class Config {
     /**
      * Create a new configuration with the provided location, extra common tags, and logger. All fields
      * are optional. The extra common tags are added to every metric, on top of the common tags provided
-     * by spectatord.
+     * by spectatord. The nf.container tag (from NETFLIX_CONTAINER_NAME, falling back to TITUS_CONTAINER_NAME)
+     * and the nf.process tag (from NETFLIX_PROCESS_NAME) are read from the environment and take precedence
+     * over extra common tags with the same keys.
      *
      * Possible values for `location` are:
      *
