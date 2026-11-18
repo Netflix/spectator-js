@@ -345,6 +345,29 @@ describe("UdpWriter Tests", (): void => {
         messages.length = 0;  // clear server messages
     });
 
+    it("send metrics to a bracketed ipv6 location", async (): Promise<void> => {
+        const server6 = createSocket({type: "udp6", ipv6Only: false});
+        const received: string[] = [];
+        server6.on("message", (msg: Buffer): void => {
+            received.push(msg.toString());
+        });
+        await new Promise<void>((resolve): void => {
+            server6.bind(0, "::", (): void => resolve());
+        });
+        const port = server6.address().port;
+
+        // any IPv6 literal other than [::1]; the IPv4-mapped loopback is
+        // reachable on hosts without a routable IPv6 address
+        const writer = new_writer(`udp://[::ffff:127.0.0.1]:${port}`) as UdpWriter;
+        await writer.write("c:server.numRequests,id=ipv6:1");
+        await writer.close();
+
+        await sleep(20);  // tiny pause is necessary to see data
+        server6.close();
+
+        assert.deepEqual(received, ["c:server.numRequests,id=ipv6:1"]);
+    });
+
     it("address family", (): void => {
         assert.equal(isIPv4("192.168.1.1"), true);
         assert.equal(isIPv4("2001:0db8:85a3:0000:0000:8a2e:0370:7334"), false);

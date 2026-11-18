@@ -48,8 +48,12 @@ export function new_writer(location: string, logger?: Logger, buffer_size_bytes?
     }
     if (location.startsWith("udp://")) {
         const parsed = new URL(location);
-        // convert IPv6 bracket notation [::1] to ::1 for the socket api
-        const hostname = parsed.hostname.replace("[::1]", "::1");
+        // URL keeps IPv6 literals in brackets ([::1], [fd00::1]); the socket api
+        // wants the bare address, otherwise it is treated as a hostname
+        let hostname = parsed.hostname;
+        if (hostname.startsWith("[") && hostname.endsWith("]")) {
+            hostname = hostname.slice(1, -1);
+        }
         return new UdpWriter(location, hostname, Number(parsed.port), log, buffer_size_bytes);
     }
     // UDS ("unix" / "unix://...") routing is intentionally disabled for the time
